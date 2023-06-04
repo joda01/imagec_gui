@@ -93,7 +93,7 @@ class TitleCard extends StatelessWidget {
       child: Card(
         margin: EdgeInsets.zero,
         elevation: 0,
-        color: Theme.of(context).colorScheme.surfaceVariant,
+        color: Theme.of(context).colorScheme.secondaryContainer,
         child: SizedBox(
           // width: width,
           child: Center(
