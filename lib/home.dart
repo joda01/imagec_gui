@@ -4,9 +4,40 @@
 
 import 'package:flutter/material.dart';
 
+import 'navbar_builder.dart';
 import 'screen_main.dart';
 import 'screen_analyze.dart';
 import 'constants.dart';
+
+
+const List<NavigationDestination> appBarDestinations = [
+  NavigationDestination(
+    tooltip: '',
+    icon: Icon(Icons.widgets_outlined),
+    label: 'Components',
+    selectedIcon: Icon(Icons.widgets),
+  ),
+  NavigationDestination(
+    tooltip: '',
+    icon: Icon(Icons.format_paint_outlined),
+    label: 'Color',
+    selectedIcon: Icon(Icons.format_paint),
+  ),
+  NavigationDestination(
+    tooltip: '',
+    icon: Icon(Icons.text_snippet_outlined),
+    label: 'Typography',
+    selectedIcon: Icon(Icons.text_snippet),
+  ),
+  NavigationDestination(
+    tooltip: '',
+    icon: Icon(Icons.invert_colors_on_outlined),
+    label: 'Elevation',
+    selectedIcon: Icon(Icons.opacity),
+  )
+];
+
+
 
 class Home extends StatefulWidget {
   const Home({
@@ -192,7 +223,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               });
             },
             selectedIndex: screenIndex,
-            isExampleBar: false,
+            destinations: appBarDestinations,
           ),
         );
       },

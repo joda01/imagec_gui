@@ -6,12 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
+import 'navbar_builder.dart';
+
 const rowDivider = SizedBox(width: 20);
 const colDivider = SizedBox(height: 10);
 const tinySpacing = 3.0;
 const smallSpacing = 10.0;
 const double cardWidth = 115;
-const double widthConstraint = 450;
 
 class FirstComponentList extends StatelessWidget {
   const FirstComponentList({
@@ -225,8 +226,7 @@ class Communication extends StatelessWidget {
     return const ComponentGroupDecoration(label: 'Communication', children: [
       NavigationBars(
         selectedIndex: 1,
-        isExampleBar: true,
-        isBadgeExample: true,
+        destinations: exampleBarDestinations,
       ),
       ProgressIndicators(),
       SnackBarSection(),
@@ -261,7 +261,7 @@ class Navigation extends StatelessWidget {
       const BottomAppBars(),
       const NavigationBars(
         selectedIndex: 0,
-        isExampleBar: true,
+        destinations: exampleBarDestinations,
       ),
       NavigationDrawers(scaffoldKey: scaffoldKey),
       const NavigationRails(),
@@ -1061,32 +1061,7 @@ class _ProgressIndicatorsState extends State<ProgressIndicators> {
   }
 }
 
-const List<NavigationDestination> appBarDestinations = [
-  NavigationDestination(
-    tooltip: '',
-    icon: Icon(Icons.widgets_outlined),
-    label: 'Components',
-    selectedIcon: Icon(Icons.widgets),
-  ),
-  NavigationDestination(
-    tooltip: '',
-    icon: Icon(Icons.format_paint_outlined),
-    label: 'Color',
-    selectedIcon: Icon(Icons.format_paint),
-  ),
-  NavigationDestination(
-    tooltip: '',
-    icon: Icon(Icons.text_snippet_outlined),
-    label: 'Typography',
-    selectedIcon: Icon(Icons.text_snippet),
-  ),
-  NavigationDestination(
-    tooltip: '',
-    icon: Icon(Icons.invert_colors_on_outlined),
-    label: 'Elevation',
-    selectedIcon: Icon(Icons.opacity),
-  )
-];
+
 
 const List<Widget> exampleBarDestinations = [
   NavigationDestination(
@@ -1136,77 +1111,7 @@ List<Widget> barWithBadgeDestinations = [
   )
 ];
 
-class NavigationBars extends StatefulWidget {
-  const NavigationBars({
-    super.key,
-    this.onSelectItem,
-    required this.selectedIndex,
-    required this.isExampleBar,
-    this.isBadgeExample = false,
-  });
 
-  final void Function(int)? onSelectItem;
-  final int selectedIndex;
-  final bool isExampleBar;
-  final bool isBadgeExample;
-
-  @override
-  State<NavigationBars> createState() => _NavigationBarsState();
-}
-
-class _NavigationBarsState extends State<NavigationBars> {
-  late int selectedIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    selectedIndex = widget.selectedIndex;
-  }
-
-  @override
-  void didUpdateWidget(covariant NavigationBars oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedIndex != oldWidget.selectedIndex) {
-      selectedIndex = widget.selectedIndex;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // App NavigationBar should get first focus.
-    Widget navigationBar = Focus(
-      autofocus: !(widget.isExampleBar || widget.isBadgeExample),
-      child: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-          if (!widget.isExampleBar) widget.onSelectItem!(index);
-        },
-        destinations: widget.isExampleBar && widget.isBadgeExample
-            ? barWithBadgeDestinations
-            : widget.isExampleBar
-                ? exampleBarDestinations
-                : appBarDestinations,
-      ),
-    );
-
-    if (widget.isExampleBar && widget.isBadgeExample) {
-      navigationBar = ComponentDecoration(
-          label: 'Badges',
-          tooltipMessage: 'Use Badge or Badge.count',
-          child: navigationBar);
-    } else if (widget.isExampleBar) {
-      navigationBar = ComponentDecoration(
-          label: 'Navigation bar',
-          tooltipMessage: 'Use NavigationBar',
-          child: navigationBar);
-    }
-
-    return navigationBar;
-  }
-}
 
 class IconToggleButtons extends StatefulWidget {
   const IconToggleButtons({super.key});
@@ -2414,83 +2319,7 @@ class _SearchAnchorsState extends State<SearchAnchors> {
   }
 }
 
-class ComponentDecoration extends StatefulWidget {
-  const ComponentDecoration({
-    super.key,
-    required this.label,
-    required this.child,
-    this.tooltipMessage = '',
-  });
 
-  final String label;
-  final Widget child;
-  final String? tooltipMessage;
-
-  @override
-  State<ComponentDecoration> createState() => _ComponentDecorationState();
-}
-
-class _ComponentDecorationState extends State<ComponentDecoration> {
-  final focusNode = FocusNode();
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: smallSpacing),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(widget.label,
-                    style: Theme.of(context).textTheme.titleSmall),
-                Tooltip(
-                  message: widget.tooltipMessage,
-                  child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 5.0),
-                      child: Icon(Icons.info_outline, size: 16)),
-                ),
-              ],
-            ),
-            ConstrainedBox(
-              constraints:
-                  const BoxConstraints.tightFor(width: widthConstraint),
-              // Tapping within the a component card should request focus
-              // for that component's children.
-              child: Focus(
-                focusNode: focusNode,
-                canRequestFocus: true,
-                child: GestureDetector(
-                  onTapDown: (_) {
-                    focusNode.requestFocus();
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        color: Theme.of(context).colorScheme.outlineVariant,
-                      ),
-                      borderRadius: const BorderRadius.all(Radius.circular(12)),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 5.0, vertical: 20.0),
-                      child: Center(
-                        child: widget.child,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class ComponentGroupDecoration extends StatelessWidget {
   const ComponentGroupDecoration(
