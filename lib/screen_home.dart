@@ -21,7 +21,7 @@ class ScreenHome extends StatelessWidget {
         .textTheme
         .apply(displayColor: Theme.of(context).colorScheme.onSurface);
 
-    Widget schemeLabel() {
+    Widget title() {
       return Container(
           child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 15),
@@ -35,44 +35,83 @@ class ScreenHome extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
             children: [
               const TextSpan(
-                  text: 'To create color schemes based on a '
-                      'platform\'s implementation of dynamic color, '
-                      'use the '),
+                  text:
+                      'Copyright 2023 J.D | many thanks to Melanie Schuerz and Anna Mueller | '),
               TextSpan(
-                text: 'dynamic_color',
+                text: 'imagec.org',
                 style: const TextStyle(decoration: TextDecoration.underline),
                 recognizer: TapGestureRecognizer()
                   ..onTap = () async {
                     final url = Uri.parse(
-                      'https://pub.dev/packages/dynamic_color',
+                      'https://www.imagec.org',
                     );
                   },
               ),
-              const TextSpan(text: ' package.'),
+              const TextSpan(text: ''),
             ],
           ),
         );
 
     Widget expander() {
       return Expanded(
-          child: FittedBox(
-              alignment: Alignment.center,
-              child: const Text('Flexible Content')));
+          child: Container(alignment: Alignment.bottomCenter, child: footer()));
     }
 
-    return Expanded(
-      child: LayoutBuilder(builder: (context, constraints) {
-        return Align(
-            child: SingleChildScrollView(
-              child: Column(
-                children: <Widget>[
-                  schemeLabel(),
-                  divider,
-                  footer()
-                ],
-              ),
-            ));
-      }),
-    );
+    return Expanded(child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints viewportConstraints) {
+      return SingleChildScrollView(
+          child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: viewportConstraints.maxHeight,
+        ),
+        child: IntrinsicHeight(
+            child: Column(children: <Widget>[TitleCard(), expander()])),
+      ));
+    }));
+  }
+}
+
+///
+/// Get started button pressed
+void getStartedPressed() {
+
+}
+
+///
+/// Title card
+class TitleCard extends StatelessWidget {
+  const TitleCard({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context)
+        .textTheme
+        .apply(displayColor: Theme.of(context).colorScheme.onSurface);
+
+    return Center(
+        child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        color: Theme.of(context).colorScheme.surfaceVariant,
+        child: SizedBox(
+          // width: width,
+          child: Center(
+              child: Column(children: [
+            Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text('ImageC', style: textTheme.displayLarge!)),
+            Text('ImageC is the new way of high throughput image analyzes.',
+                style: textTheme.bodyLarge!),
+            Padding(
+                padding: const EdgeInsets.all(20),
+                child: FilledButton(
+                  onPressed: getStartedPressed,
+                  child: const Text('Get Started'),
+                )),
+          ])),
+        ),
+      ),
+    ));
   }
 }
