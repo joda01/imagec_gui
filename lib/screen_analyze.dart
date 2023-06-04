@@ -139,13 +139,13 @@ enum ChannelIndex {
   ch09('09', 8),
   ch10('10', 9),
   ch11('11', 10),
-  ch12('12', 11),
-  ch13('13', 12),
-  ch14('14', 13),
-  ch15('15', 14),
-  ch16('16', 15),
-   ch17('17', 16),
-    ch18('18', 17);
+  ch12('12', 11);
+  //ch13('13', 12),
+  //ch14('14', 13),
+  //ch15('15', 14),
+  //ch16('16', 15),
+  // ch17('17', 16),
+  //  ch18('18', 17);
 
   const ChannelIndex(this.label, this.value);
   final String label;
@@ -534,10 +534,11 @@ class _ChannelSelectorState extends State<ChannelSelector> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text('Choose corresponding channels', style: textTheme.labelLarge),
+          Text('Choose corresponding channel', style: textTheme.labelLarge),
           const SizedBox(height: 5.0),
           Wrap(
             spacing: 5.0,
+            runSpacing: 5.0,
             children: ChannelIndex.values.map((ChannelIndex exercise) {
               return FilterChip(
                 label: Text(exercise.label),
