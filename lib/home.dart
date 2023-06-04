@@ -3,9 +3,10 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:namer_app/screen_settings.dart';
 
-import 'navbar_builder.dart';
-import 'screen_main.dart';
+import 'builder_navbar.dart';
+import 'screen_home.dart';
 import 'screen_analyze.dart';
 import 'constants.dart';
 
@@ -13,27 +14,27 @@ import 'constants.dart';
 const List<NavigationDestination> appBarDestinations = [
   NavigationDestination(
     tooltip: '',
-    icon: Icon(Icons.widgets_outlined),
-    label: 'Components',
-    selectedIcon: Icon(Icons.widgets),
+    icon: Icon(Icons.home_outlined),
+    label: 'Home',
+    selectedIcon: Icon(Icons.home),
   ),
   NavigationDestination(
     tooltip: '',
-    icon: Icon(Icons.format_paint_outlined),
-    label: 'Color',
-    selectedIcon: Icon(Icons.format_paint),
+    icon: Icon(Icons.broken_image_outlined),
+    label: 'Analyze',
+    selectedIcon: Icon(Icons.broken_image),
   ),
   NavigationDestination(
     tooltip: '',
-    icon: Icon(Icons.text_snippet_outlined),
-    label: 'Typography',
-    selectedIcon: Icon(Icons.text_snippet),
+    icon: Icon(Icons.settings_outlined),
+    label: 'Settings',
+    selectedIcon: Icon(Icons.settings),
   ),
   NavigationDestination(
     tooltip: '',
-    icon: Icon(Icons.invert_colors_on_outlined),
-    label: 'Elevation',
-    selectedIcon: Icon(Icons.opacity),
+    icon: Icon(Icons.info_outline),
+    label: 'About',
+    selectedIcon: Icon(Icons.info),
   )
 ];
 
@@ -68,7 +69,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   bool showMediumSizeLayout = false;
   bool showLargeSizeLayout = false;
 
-  int screenIndex = ScreenSelected.component.value;
+  int screenIndex = ScreenSelected.home.value;
 
   @override
   initState() {
@@ -131,7 +132,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Widget createScreenFor(
       ScreenSelected screenSelected, bool showNavBarExample) {
     switch (screenSelected) {
-      case ScreenSelected.component:
+      case ScreenSelected.home:
+        return const ScreenHome();
+      case ScreenSelected.analyze:
+        return const ScreenAnalyze();
+      case ScreenSelected.settings:
+        return const ScreenAnalyze();
+      case ScreenSelected.about:
         return Expanded(
           child: OneTwoTransition(
             animation: railAnimation,
@@ -144,12 +151,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             ),
           ),
         );
-      case ScreenSelected.color:
-        return const ScreenAnalyze();
-      case ScreenSelected.typography:
-        return const ScreenAnalyze();
-      case ScreenSelected.elevation:
-       return const ScreenAnalyze();
     }
   }
 

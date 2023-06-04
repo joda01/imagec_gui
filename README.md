@@ -2,7 +2,9 @@
 
 A new Flutter project.
 
-`flutter build web`
+`flutter build web`  
+
+`flutter build web --web-renderer html`
 
 ## Getting Started
 
