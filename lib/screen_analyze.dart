@@ -67,12 +67,47 @@ class ScreenAnalyze extends StatelessWidget {
         ),
         child: IntrinsicHeight(
             child: SingleChildScrollView(
-                child: Row(children: <Widget>[
-          ChannelSettingEV(),
-          ChannelSettingEV(),
-        ]))),
+                child: Row(
+                    //    mainAxisAlignment: MainAxisAlignment.,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+              ChannelSettingEV(),
+              ChannelSettingEV(),
+              AddChannelButton()
+            ]))),
       ));
     }));
+  }
+}
+
+class AddChannelButton extends StatelessWidget {
+  const AddChannelButton({super.key});
+
+  Widget build(BuildContext context) {
+    return Center(
+        child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+            child: Card(
+                margin: EdgeInsets.zero,
+                elevation: 0,
+                color: Theme.of(context).colorScheme.background,
+                child: SizedBox(
+                    // width: width,
+                    child: Center(
+                        child: Column(children: [
+                  Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: SizedBox(
+                        width: 60,
+                        child: FloatingActionButton(
+                          onPressed: () {
+                            // Add your onPressed code here!
+                          },
+                          //backgroundColor: Colors.green,
+                          child: const Icon(Icons.add),
+                        ),
+                      ))
+                ]))))));
   }
 }
 
@@ -127,6 +162,22 @@ enum ThresholdMethod {
   final String value;
 }
 
+enum AIModelEV {
+  common('Common v1', 'AI_MODEL_EV_COMMON_V1'),
+  inVitro(
+    'In vitro v1',
+    'AI_MODEL_EV_IN_VITRO_V1',
+  ),
+  inVivo(
+    'In vivo v1',
+    'AI_MODEL_EV_IN_VIVO_V1',
+  );
+
+  const AIModelEV(this.label, this.value);
+  final String label;
+  final String value;
+}
+
 enum ChannelIndex {
   ch01('01', 0),
   ch02('02', 1),
@@ -152,17 +203,23 @@ enum ChannelIndex {
   final int value;
 }
 
+class ChannelSettingEV extends StatefulWidget {
+  const ChannelSettingEV({super.key});
+
+  @override
+  State<ChannelSettingEV> createState() => _ChannelSettingEV();
+}
+
 ///
 /// Title card
-class ChannelSettingEV extends StatelessWidget {
-  ChannelSettingEV({super.key});
+class _ChannelSettingEV extends State<ChannelSettingEV> {
+  bool useAI = false;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context)
         .textTheme
         .apply(displayColor: Theme.of(context).colorScheme.onSurface);
-
 
     ///
     /// Channel type
@@ -185,7 +242,7 @@ class ChannelSettingEV extends StatelessWidget {
     }
 
     ///
-    /// Channel labels
+    /// Thresholds
     final TextEditingController thresholdMethodController =
         TextEditingController();
     final List<DropdownMenuEntry<ThresholdMethod>> thresholdMethodEntries =
@@ -193,6 +250,16 @@ class ChannelSettingEV extends StatelessWidget {
     for (final ThresholdMethod entry in ThresholdMethod.values) {
       thresholdMethodEntries.add(
           DropdownMenuEntry<ThresholdMethod>(value: entry, label: entry.label));
+    }
+
+    ///
+    /// AI Model
+    final TextEditingController aiModelController = TextEditingController();
+    final List<DropdownMenuEntry<AIModelEV>> aiModelEntries =
+        <DropdownMenuEntry<AIModelEV>>[];
+    for (final AIModelEV entry in AIModelEV.values) {
+      aiModelEntries
+          .add(DropdownMenuEntry<AIModelEV>(value: entry, label: entry.label));
     }
 
     return Center(
@@ -215,9 +282,7 @@ class ChannelSettingEV extends StatelessWidget {
 
             Padding(
                 padding: const EdgeInsets.all(10),
-                child: SizedBox(
-                    width: 350,
-                    child: ChannelSelector())),
+                child: SizedBox(width: 350, child: ChannelSelector())),
 
             //
             // Divider
@@ -247,50 +312,121 @@ class ChannelSettingEV extends StatelessWidget {
             // Divider
             //
             CustomDivider(),
-
-            //
-            // Thershold method
-            //
-            Padding(
-                padding: const EdgeInsets.all(10),
-                child: DropdownMenu<ThresholdMethod>(
-                  width: 320,
-                  initialSelection: ThresholdMethod.manual,
-                  controller: thresholdMethodController,
-                  leadingIcon: const Icon(Icons.contrast),
-                  label: const Text('Thresholding'),
-                  dropdownMenuEntries: thresholdMethodEntries,
-                  onSelected: (value) {
-                    //setState(() {
-                    //  selectedIcon = icon;
-                    //});
-                  },
-                )),
-            //
-            // Minimum threshold
-            //
             Padding(
                 padding: const EdgeInsets.all(10),
                 child: SizedBox(
                   width: 320,
-                  child: TextField(
-                    obscureText: false,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d+\.?\d{0,2}')),
-                      RangeTextInputFormatter(min: 0, max: 100)
-                    ],
-                    keyboardType:
-                        TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.exposure),
-                        border: OutlineInputBorder(),
-                        labelText: 'Min threshold',
-                        suffixText: '%',
-                        hintText: '[0-100]',
-                        helperText: 'Value of 100% means perfect white.'),
+                  child: SwitchListTile(
+                    title: const Text('Use AI for detection'),
+                    secondary: const Icon(Icons.auto_awesome_outlined),
+                    value: useAI,
+                    onChanged: (value) {
+                      setState(() {
+                        useAI = value;
+                      });
+                    },
                   ),
                 )),
+
+            ////////////////////////////////////////////////////////////////////
+            //
+            // Thershold method
+            //
+            Visibility(
+                visible: !useAI,
+                child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: DropdownMenu<ThresholdMethod>(
+                      width: 320,
+                      initialSelection: ThresholdMethod.manual,
+                      controller: thresholdMethodController,
+                      leadingIcon: const Icon(Icons.contrast),
+                      label: const Text('Thresholding'),
+                      dropdownMenuEntries: thresholdMethodEntries,
+                      onSelected: (value) {
+                        //setState(() {
+                        //  selectedIcon = icon;
+                        //});
+                      },
+                    ))),
+            //
+            // Minimum threshold
+            //
+            Visibility(
+                visible: !useAI,
+                child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: SizedBox(
+                      width: 320,
+                      child: TextField(
+                        obscureText: false,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d+\.?\d{0,2}')),
+                          RangeTextInputFormatter(min: 0, max: 100)
+                        ],
+                        keyboardType:
+                            TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(
+                            prefixIcon: const Icon(Icons.exposure),
+                            border: OutlineInputBorder(),
+                            labelText: 'Min threshold',
+                            suffixText: '%',
+                            hintText: '[0-100]',
+                            helperText: 'Value of 100% means perfect white.'),
+                      ),
+                    ))),
+
+            ////////////////////////////////////////////////////////////////////
+            //
+            // AI method
+            //
+            Visibility(
+                visible: useAI,
+                child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: DropdownMenu<AIModelEV>(
+                      width: 320,
+                      initialSelection: AIModelEV.common,
+                      controller: aiModelController,
+                      leadingIcon: const Icon(Icons.hub_outlined),
+                      label: const Text('AI model'),
+                      dropdownMenuEntries: aiModelEntries,
+                      onSelected: (value) {
+                        //setState(() {
+                        //  selectedIcon = icon;
+                        //});
+                      },
+                    ))),
+            //
+            // Minimum probability
+            //
+            Visibility(
+                visible: useAI,
+                child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: SizedBox(
+                      width: 320,
+                      child: TextField(
+                        obscureText: false,
+                        controller: TextEditingController()..text = '80',
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d+\.?\d{0,2}')),
+                          RangeTextInputFormatter(min: 0, max: 100)
+                        ],
+                        keyboardType:
+                            TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(
+                            prefixIcon: const Icon(Icons.percent),
+                            border: OutlineInputBorder(),
+                            labelText: 'Min probability',
+                            suffixText: '%',
+                            hintText: '[0-100]',
+                            helperText:
+                                'Minimum probability to accept a finding.'),
+                      ),
+                    ))),
 
             //
             // Divider
@@ -412,7 +548,7 @@ class ChannelSettingEV extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: FilledButton(
                   onPressed: getStartedPressed,
-                  child: const Text('Get Started'),
+                  child: const Text('Remove'),
                 )),
           ])),
         ),
@@ -512,8 +648,6 @@ class CustomDivider extends StatelessWidget {
       ));
 }
 
-
-
 ///
 /// Channel index selector
 class ChannelSelector extends StatefulWidget {
@@ -547,6 +681,7 @@ class _ChannelSelectorState extends State<ChannelSelector> {
                 showCheckmark: false,
                 onSelected: (bool selected) {
                   setState(() {
+                    filters.clear(); // Allow only one selection
                     if (selected) {
                       filters.add(exercise);
                     } else {
