@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -58,9 +60,8 @@ class ScreenAnalyze extends StatelessWidget {
           child: Container(alignment: Alignment.bottomCenter, child: footer()));
     }
 
-final ScrollController controllerHorizontal = ScrollController();
-final ScrollController controllerVertical = ScrollController();
-
+    final ScrollController controllerHorizontal = ScrollController();
+    final ScrollSyncer controllervertical = ScrollSyncer();
 
     return Expanded(child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
@@ -70,36 +71,45 @@ final ScrollController controllerVertical = ScrollController();
         interactive: true,
         controller: controllerHorizontal,
         child: SingleChildScrollView(
-          controller: controllerHorizontal,
+            controller: controllerHorizontal,
             scrollDirection: Axis.horizontal,
-            child: Scrollbar(
-              thickness: 10,
-              thumbVisibility: true,
-              interactive: true,
-              controller: controllerVertical,
-              child: SingleChildScrollView(
-                controller: controllerVertical,
-                  scrollDirection: Axis.vertical,
-                  child: Row(
-                      //    mainAxisAlignment: MainAxisAlignment.,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      
-                      children: <Widget>[
-                        ChannelSettingEV(),
-                        ChannelSettingEV(),
-                        ChannelSettingEV(),
-                        ChannelSettingEV(),
-                        ChannelSettingEV(),
-                        ChannelSettingEV(),
-                        ChannelSettingEV(),
-                        ChannelSettingEV(),
-                        ChannelSettingEV(),
-                        ChannelSettingEV(),
-                        AddChannelButton()
-                      ])),
-            )),
+            child: Row(
+                //    mainAxisAlignment: MainAxisAlignment.,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  ChannelSettingEV(scroll: controllervertical),
+                  ChannelSettingEV(scroll: controllervertical),
+                  ChannelSettingEV(scroll: controllervertical),
+                  ChannelSettingEV(scroll: controllervertical),
+                  ChannelSettingEV(scroll: controllervertical),
+                  ChannelSettingEV(scroll: controllervertical),
+                  ChannelSettingEV(scroll: controllervertical),
+                  ChannelSettingEV(scroll: controllervertical),
+                  ChannelSettingEV(scroll: controllervertical),
+                  ChannelSettingEV(scroll: controllervertical),
+                  AddChannelButton()
+                ])),
       );
     }));
+  }
+}
+
+class ScrollSyncer {
+  StreamController<ScrollController> _streamController =
+      StreamController<ScrollController>.broadcast();
+
+  void setPosition(ScrollController position) {
+    if (pos != position.offset) {
+      pos = position.offset;
+      _streamController.add(position);
+    }
+  }
+
+  Stream<ScrollController> get onChange => _streamController.stream;
+  double pos = 0;
+
+  void dispose() {
+    _streamController.close();
   }
 }
 
@@ -227,7 +237,9 @@ enum ChannelIndex {
 }
 
 class ChannelSettingEV extends StatefulWidget {
-  const ChannelSettingEV({super.key});
+  const ChannelSettingEV({super.key, required this.scroll});
+
+  final ScrollSyncer scroll;
 
   @override
   State<ChannelSettingEV> createState() => _ChannelSettingEV();
@@ -284,294 +296,325 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
       aiModelEntries
           .add(DropdownMenuEntry<AIModelEV>(value: entry, label: entry.label));
     }
+    final ScrollController controllervertical = ScrollController();
 
-    return Center(
-        child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-      child: Card(
-        margin: EdgeInsets.zero,
-        elevation: 0,
-        color: Theme.of(context).colorScheme.onInverseSurface,
-        child: SizedBox(
-          // width: width,
-          child: Center(
-              child: Column(children: [
-            Padding(
-                padding: const EdgeInsets.all(10),
-                child: Text(
-                  "EV",
-                  style: textTheme.titleLarge,
-                )),
 
-            Padding(
-                padding: const EdgeInsets.all(10),
-                child: SizedBox(width: 220, child: ChannelSelector())),
 
-            //
-            // Channel labels
-            //
-            Padding(
-                padding: const EdgeInsets.all(10),
-                child: DropdownMenu<ChannelLabels>(
-                  width: 230,
-                  initialSelection: ChannelLabels.cy3,
-                  controller: chLabelsController,
-                  leadingIcon: const Icon(Icons.label_outline),
-                  label: const Text('Label'),
-                  dropdownMenuEntries: channelLabelsEntries,
-                  onSelected: (value) {
-                    //setState(() {
-                    //  selectedIcon = icon;
-                    //});
-                  },
-                )),
+    widget.scroll.onChange.listen((newValue) {
+      if (newValue != controllervertical && controllervertical.hasClients && newValue.offset >=0.0) {
+        controllervertical.jumpTo(newValue.offset);
 
-            //
-            // Divider
-            //
-            CustomDivider(),
-            Padding(
-                padding: const EdgeInsets.all(10),
-                child: SizedBox(
-                  width: 230,
-                  child: SwitchListTile(
-                    title: const Text('Use AI'),
-                    secondary: const Icon(Icons.auto_awesome_outlined),
-                    value: useAI,
-                    onChanged: (value) {
-                      setState(() {
-                        useAI = value;
-                      });
-                    },
-                  ),
-                )),
+      }
+    });
 
-            ////////////////////////////////////////////////////////////////////
-            //
-            // Thershold method
-            //
-            Visibility(
-                visible: !useAI,
+    void _hasScrolled() {
+      widget.scroll.setPosition(controllervertical);
+    }
+
+    controllervertical.addListener(_hasScrolled);
+
+    return Scrollbar(
+        thickness: 10,
+        //thumbVisibility: true,
+        interactive: true,
+        controller: controllervertical,
+        child: SingleChildScrollView(
+            controller: controllervertical,
+            scrollDirection: Axis.vertical,
+            child: Center(
                 child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: DropdownMenu<ThresholdMethod>(
-                      width: 230,
-                      initialSelection: ThresholdMethod.manual,
-                      controller: thresholdMethodController,
-                      leadingIcon: const Icon(Icons.contrast),
-                      label: const Text('Thresholding'),
-                      dropdownMenuEntries: thresholdMethodEntries,
-                      onSelected: (value) {
-                        //setState(() {
-                        //  selectedIcon = icon;
-                        //});
-                      },
-                    ))),
-            //
-            // Minimum threshold
-            //
-            Visibility(
-                visible: !useAI,
-                child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: SizedBox(
-                      width: 230,
-                      child: TextField(
-                        obscureText: false,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d+\.?\d{0,2}')),
-                          RangeTextInputFormatter(min: 0, max: 100)
-                        ],
-                        keyboardType:
-                            TextInputType.numberWithOptions(decimal: true),
-                        decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.exposure),
-                            border: OutlineInputBorder(),
-                            labelText: 'Min threshold',
-                            suffixText: '%',
-                            hintText: '[0-100]',
-                            helperText: 'Value of 100% means perfect white.'),
-                      ),
-                    ))),
-
-            ////////////////////////////////////////////////////////////////////
-            //
-            // AI method
-            //
-            Visibility(
-                visible: useAI,
-                child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: DropdownMenu<AIModelEV>(
-                      width: 230,
-                      initialSelection: AIModelEV.common,
-                      controller: aiModelController,
-                      leadingIcon: const Icon(Icons.hub_outlined),
-                      label: const Text('AI model'),
-                      dropdownMenuEntries: aiModelEntries,
-                      onSelected: (value) {
-                        //setState(() {
-                        //  selectedIcon = icon;
-                        //});
-                      },
-                    ))),
-            //
-            // Minimum probability
-            //
-            Visibility(
-                visible: useAI,
-                child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: SizedBox(
-                      width: 230,
-                      child: TextField(
-                        obscureText: false,
-                        controller: TextEditingController()..text = '80',
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d+\.?\d{0,2}')),
-                          RangeTextInputFormatter(min: 0, max: 100)
-                        ],
-                        keyboardType:
-                            TextInputType.numberWithOptions(decimal: true),
-                        decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.percent),
-                            border: OutlineInputBorder(),
-                            labelText: 'Min probability',
-                            suffixText: '%',
-                            hintText: '[0-100]',
-                            helperText:
-                                'Minimum probability to accept a finding.'),
-                      ),
-                    ))),
-
-            //
-            // Divider
-            //
-            CustomDivider(),
-
-            //
-            // Minimum circularity
-            //
-            Padding(
-                padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+              child: Card(
+                margin: EdgeInsets.zero,
+                elevation: 0,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 child: SizedBox(
-                  width: 230,
-                  child: TextField(
-                    obscureText: false,
-                    controller: TextEditingController()..text = '80',
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d+\.?\d{0,2}')),
-                      RangeTextInputFormatter(min: 0, max: 100)
-                    ],
-                    keyboardType:
-                        TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.hexagon_outlined),
-                        suffixText: '%',
-                        border: OutlineInputBorder(),
-                        labelText: 'Min. circularity',
-                        hintText: '[0-100]',
-                        helperText: 'Value of 100% means perfect circle.'),
-                  ),
-                )),
+                  // width: width,
+                  child: Center(
+                      child: Column(children: [
+                    Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Text(
+                          "EV",
+                          style: textTheme.titleLarge,
+                        )),
 
-            //
-            // Particle size
-            //
-            Padding(
-                padding: const EdgeInsets.all(10),
-                child: SizedBox(
-                  width: 230,
-                  child: TextField(
-                    obscureText: false,
-                    controller: TextEditingController()..text = '5-999999',
-                    inputFormatters: [
-                      CheckForNonEmptyTextField(
-                          regex: RegExp(r'^\d+\.?\d{0,2}-\d+\.?\d{0,2}')),
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d+\.?\d{0,2}-\d+\.?\d{0,2}')),
-                    ],
-                    keyboardType:
-                        TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.all_out_outlined),
-                        border: OutlineInputBorder(),
-                        labelText: 'Particle size range',
-                        suffixText: 'µm²',
-                        hintText: '[min] - [max]',
-                        helperText: 'Particle size range.'),
-                  ),
-                )),
+                    Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: SizedBox(width: 220, child: ChannelSelector())),
 
-            //
-            // Snap area
-            //
-            Padding(
-                padding: const EdgeInsets.all(10),
-                child: SizedBox(
-                  width: 230,
-                  child: TextField(
-                    obscureText: false,
-                    controller: TextEditingController()..text = '0',
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d+\.?\d{0,2}')),
-                      RangeTextInputFormatter(min: 0, max: double.infinity)
-                    ],
-                    keyboardType:
-                        TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.adjust),
-                        suffixText: 'µm',
-                        border: OutlineInputBorder(),
-                        labelText: 'Snap area diameter',
-                        helperText: 'Snap area diameter'),
-                  ),
-                )),
+                    //
+                    // Channel labels
+                    //
+                    Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: DropdownMenu<ChannelLabels>(
+                          width: 230,
+                          initialSelection: ChannelLabels.cy3,
+                          controller: chLabelsController,
+                          leadingIcon: const Icon(Icons.label_outline),
+                          label: const Text('Label'),
+                          dropdownMenuEntries: channelLabelsEntries,
+                          onSelected: (value) {
+                            //setState(() {
+                            //  selectedIcon = icon;
+                            //});
+                          },
+                        )),
 
-            //
-            // Divider
-            //
-            CustomDivider(),
+                    //
+                    // Divider
+                    //
+                    CustomDivider(),
+                    Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: SizedBox(
+                          width: 230,
+                          child: SwitchListTile(
+                            title: const Text('Use AI'),
+                            secondary: const Icon(Icons.auto_awesome_outlined),
+                            value: useAI,
+                            onChanged: (value) {
+                              setState(() {
+                                useAI = value;
+                              });
+                            },
+                          ),
+                        )),
 
-            //
-            // Margin crop
-            //
-            Padding(
-                padding: const EdgeInsets.all(10),
-                child: SizedBox(
-                  width: 230,
-                  child: TextField(
-                    obscureText: false,
-                    controller: TextEditingController()..text = '0',
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d+\.?\d{0,2}')),
-                      RangeTextInputFormatter(min: 0, max: double.infinity)
-                    ],
-                    keyboardType:
-                        TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.crop),
-                        suffixText: 'µm',
-                        border: OutlineInputBorder(),
-                        labelText: 'Margin crop',
-                        helperText: 'Margin crop'),
-                  ),
-                )),
-            Padding(
-                padding: const EdgeInsets.all(20),
-                child: FilledButton(
-                  onPressed: getStartedPressed,
-                  child: const Text('Remove'),
-                )),
-          ])),
-        ),
-      ),
-    ));
+                    ////////////////////////////////////////////////////////////////////
+                    //
+                    // Thershold method
+                    //
+                    Visibility(
+                        visible: !useAI,
+                        child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: DropdownMenu<ThresholdMethod>(
+                              width: 230,
+                              initialSelection: ThresholdMethod.manual,
+                              controller: thresholdMethodController,
+                              leadingIcon: const Icon(Icons.contrast),
+                              label: const Text('Thresholding'),
+                              dropdownMenuEntries: thresholdMethodEntries,
+                              onSelected: (value) {
+                                //setState(() {
+                                //  selectedIcon = icon;
+                                //});
+                              },
+                            ))),
+                    //
+                    // Minimum threshold
+                    //
+                    Visibility(
+                        visible: !useAI,
+                        child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: SizedBox(
+                              width: 230,
+                              child: TextField(
+                                obscureText: false,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d+\.?\d{0,2}')),
+                                  RangeTextInputFormatter(min: 0, max: 100)
+                                ],
+                                keyboardType: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                decoration: InputDecoration(
+                                    prefixIcon: const Icon(Icons.exposure),
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Min threshold',
+                                    suffixText: '%',
+                                    hintText: '[0-100]',
+                                    helperText:
+                                        'Value of 100% means perfect white.'),
+                              ),
+                            ))),
+
+                    ////////////////////////////////////////////////////////////////////
+                    //
+                    // AI method
+                    //
+                    Visibility(
+                        visible: useAI,
+                        child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: DropdownMenu<AIModelEV>(
+                              width: 230,
+                              initialSelection: AIModelEV.common,
+                              controller: aiModelController,
+                              leadingIcon: const Icon(Icons.hub_outlined),
+                              label: const Text('AI model'),
+                              dropdownMenuEntries: aiModelEntries,
+                              onSelected: (value) {
+                                //setState(() {
+                                //  selectedIcon = icon;
+                                //});
+                              },
+                            ))),
+                    //
+                    // Minimum probability
+                    //
+                    Visibility(
+                        visible: useAI,
+                        child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: SizedBox(
+                              width: 230,
+                              child: TextField(
+                                obscureText: false,
+                                controller: TextEditingController()
+                                  ..text = '80',
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d+\.?\d{0,2}')),
+                                  RangeTextInputFormatter(min: 0, max: 100)
+                                ],
+                                keyboardType: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                decoration: InputDecoration(
+                                    prefixIcon: const Icon(Icons.percent),
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Min probability',
+                                    suffixText: '%',
+                                    hintText: '[0-100]',
+                                    helperText:
+                                        'Minimum probability to accept a finding.'),
+                              ),
+                            ))),
+
+                    //
+                    // Divider
+                    //
+                    CustomDivider(),
+
+                    //
+                    // Minimum circularity
+                    //
+                    Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: SizedBox(
+                          width: 230,
+                          child: TextField(
+                            obscureText: false,
+                            controller: TextEditingController()..text = '80',
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                  RegExp(r'^\d+\.?\d{0,2}')),
+                              RangeTextInputFormatter(min: 0, max: 100)
+                            ],
+                            keyboardType:
+                                TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.hexagon_outlined),
+                                suffixText: '%',
+                                border: OutlineInputBorder(),
+                                labelText: 'Min. circularity',
+                                hintText: '[0-100]',
+                                helperText:
+                                    'Value of 100% means perfect circle.'),
+                          ),
+                        )),
+
+                    //
+                    // Particle size
+                    //
+                    Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: SizedBox(
+                          width: 230,
+                          child: TextField(
+                            obscureText: false,
+                            controller: TextEditingController()
+                              ..text = '5-999999',
+                            inputFormatters: [
+                              CheckForNonEmptyTextField(
+                                  regex:
+                                      RegExp(r'^\d+\.?\d{0,2}-\d+\.?\d{0,2}')),
+                              FilteringTextInputFormatter.allow(
+                                  RegExp(r'^\d+\.?\d{0,2}-\d+\.?\d{0,2}')),
+                            ],
+                            keyboardType:
+                                TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.all_out_outlined),
+                                border: OutlineInputBorder(),
+                                labelText: 'Particle size range',
+                                suffixText: 'µm²',
+                                hintText: '[min] - [max]',
+                                helperText: 'Particle size range.'),
+                          ),
+                        )),
+
+                    //
+                    // Snap area
+                    //
+                    Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: SizedBox(
+                          width: 230,
+                          child: TextField(
+                            obscureText: false,
+                            controller: TextEditingController()..text = '0',
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                  RegExp(r'^\d+\.?\d{0,2}')),
+                              RangeTextInputFormatter(
+                                  min: 0, max: double.infinity)
+                            ],
+                            keyboardType:
+                                TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.adjust),
+                                suffixText: 'µm',
+                                border: OutlineInputBorder(),
+                                labelText: 'Snap area diameter',
+                                helperText: 'Snap area diameter'),
+                          ),
+                        )),
+
+                    //
+                    // Divider
+                    //
+                    CustomDivider(),
+
+                    //
+                    // Margin crop
+                    //
+                    Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: SizedBox(
+                          width: 230,
+                          child: TextField(
+                            obscureText: false,
+                            controller: TextEditingController()..text = '0',
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                  RegExp(r'^\d+\.?\d{0,2}')),
+                              RangeTextInputFormatter(
+                                  min: 0, max: double.infinity)
+                            ],
+                            keyboardType:
+                                TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.crop),
+                                suffixText: 'µm',
+                                border: OutlineInputBorder(),
+                                labelText: 'Margin crop',
+                                helperText: 'Margin crop'),
+                          ),
+                        )),
+                    Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: FilledButton(
+                          onPressed: getStartedPressed,
+                          child: const Text('Remove'),
+                        )),
+                  ])),
+                ),
+              ),
+            ))));
   }
 }
 
