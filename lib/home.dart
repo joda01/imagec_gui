@@ -10,7 +10,6 @@ import 'screen_home.dart';
 import 'screen_analyze.dart';
 import 'constants.dart';
 
-
 const List<NavigationDestination> appBarDestinations = [
   NavigationDestination(
     tooltip: '',
@@ -38,8 +37,6 @@ const List<NavigationDestination> appBarDestinations = [
   )
 ];
 
-
-
 class Home extends StatefulWidget {
   const Home({
     super.key,
@@ -65,6 +62,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   late final AnimationController controller;
   late final CurvedAnimation railAnimation;
+  final _pageController = PageController(
+    initialPage: 0,
+  );
   bool controllerInitialized = false;
   bool showMediumSizeLayout = false;
   bool showLargeSizeLayout = false;
@@ -91,11 +91,16 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
+  double screenWidth = 0;
+  double screenHeight = 0;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
     final double width = MediaQuery.of(context).size.width;
+    screenWidth = width;
+    screenHeight = MediaQuery.of(context).size.height;
     final AnimationStatus status = controller.status;
     if (width > mediumWidthBreakpoint) {
       if (width > largeWidthBreakpoint) {
@@ -122,38 +127,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       controller.value = width > mediumWidthBreakpoint ? 1 : 0;
     }
     showLargeSizeLayout = false;
-
   }
 
   void handleScreenChanged(int screenSelected) {
     setState(() {
-      screenIndex = screenSelected;
+      _pageController.jumpToPage(screenSelected);
     });
-  }
-
-  Widget createScreenFor(
-      ScreenSelected screenSelected, bool showNavBarExample) {
-    switch (screenSelected) {
-      case ScreenSelected.home:
-        return const ScreenHome();
-      case ScreenSelected.analyze:
-        return const ScreenAnalyze();
-      case ScreenSelected.settings:
-        return const ScreenAnalyze();
-      case ScreenSelected.about:
-        return Expanded(
-          child: OneTwoTransition(
-            animation: railAnimation,
-            one: FirstComponentList(
-                showNavBottomBar: showNavBarExample,
-                scaffoldKey: scaffoldKey,
-                showSecondList: showMediumSizeLayout || showLargeSizeLayout),
-            two: SecondComponentList(
-              scaffoldKey: scaffoldKey,
-            ),
-          ),
-        );
-    }
   }
 
   PreferredSizeWidget createAppBar() {
@@ -191,8 +170,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           animationController: controller,
           railAnimation: railAnimation,
           appBar: createAppBar(),
-          body: createScreenFor(
-              ScreenSelected.values[screenIndex], controller.value == 1),
+          body: PageView(controller: _pageController, children: <Widget>[
+            ScreenHome(),
+            ScreenAnalyze(),
+            //ScreenAnalyze()
+          ]),
           navigationRail: NavigationRail(
             extended: showLargeSizeLayout,
             destinations: navRailDestinations,
@@ -259,7 +241,6 @@ class _BrightnessButton extends StatelessWidget {
   }
 }
 
-
 class _ExpandedTrailingActions extends StatelessWidget {
   const _ExpandedTrailingActions({
     required this.useLightMode,
@@ -298,7 +279,7 @@ class _ExpandedTrailingActions extends StatelessWidget {
                   })
             ],
           ),
-        /*  Row(
+          /*  Row(
             children: [
               useMaterial3
                   ? const Text('Material 3')
@@ -306,8 +287,7 @@ class _ExpandedTrailingActions extends StatelessWidget {
               Expanded(child: Container()),
             ],
           ),*/
-        //  const Divider(),
-
+          //  const Divider(),
         ],
       ),
     );
@@ -316,7 +296,6 @@ class _ExpandedTrailingActions extends StatelessWidget {
         : SingleChildScrollView(child: trailingActionsBody);
   }
 }
-
 
 class NavigationTransition extends StatefulWidget {
   const NavigationTransition(
@@ -377,7 +356,7 @@ class _NavigationTransitionState extends State<NavigationTransition> {
             backgroundColor: colorScheme.surface,
             child: widget.navigationRail,
           ),
-          widget.body,
+          Expanded(child: widget.body)
         ],
       ),
       bottomNavigationBar: BarTransition(

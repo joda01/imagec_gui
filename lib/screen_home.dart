@@ -53,11 +53,10 @@ class ScreenHome extends StatelessWidget {
         );
 
     Widget expander() {
-      return Expanded(
-          child: Container(alignment: Alignment.bottomCenter, child: footer()));
+      return  Container(alignment: Alignment.bottomCenter, child: footer());
     }
 
-    return Expanded(child: LayoutBuilder(
+    return  LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
       return SingleChildScrollView(
           child: ConstrainedBox(
@@ -67,7 +66,7 @@ class ScreenHome extends StatelessWidget {
         child: IntrinsicHeight(
             child: Column(children: <Widget>[TitleCard(), expander()])),
       ));
-    }));
+    });
   }
 }
 

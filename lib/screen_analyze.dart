@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:js_util';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -25,11 +26,10 @@ class ScreenAnalyze extends StatelessWidget {
         .apply(displayColor: Theme.of(context).colorScheme.onSurface);
 
     Widget title() {
-      return Container(
-          child: Padding(
+      return Padding(
         padding: const EdgeInsets.symmetric(vertical: 15),
         child: Text("Welcome", style: textTheme.displayLarge!),
-      ));
+      );
     }
 
     Widget footer() => RichText(
@@ -60,38 +60,52 @@ class ScreenAnalyze extends StatelessWidget {
           child: Container(alignment: Alignment.bottomCenter, child: footer()));
     }
 
-    final ScrollController controllerHorizontal = ScrollController();
-    final ScrollSyncer controllervertical = ScrollSyncer();
-
-    return Expanded(child: LayoutBuilder(
+    return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
-      return Scrollbar(
-        thickness: 10,
-        thumbVisibility: true,
-        interactive: true,
-        controller: controllerHorizontal,
-        child: SingleChildScrollView(
-            controller: controllerHorizontal,
-            scrollDirection: Axis.horizontal,
-            child: Row(
-                //    mainAxisAlignment: MainAxisAlignment.,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  ChannelSettingEV(scroll: controllervertical),
-                  ChannelSettingEV(scroll: controllervertical),
-                  ChannelSettingEV(scroll: controllervertical),
-                  ChannelSettingEV(scroll: controllervertical),
-                  ChannelSettingEV(scroll: controllervertical),
-                  ChannelSettingEV(scroll: controllervertical),
-                  ChannelSettingEV(scroll: controllervertical),
-                  ChannelSettingEV(scroll: controllervertical),
-                  ChannelSettingEV(scroll: controllervertical),
-                  ChannelSettingEV(scroll: controllervertical),
-                  AddChannelButton()
-                ])),
-      );
-    }));
+      return ChannelRow();
+    });
   }
+}
+
+class ChannelRow extends StatefulWidget {
+  const ChannelRow({super.key});
+
+  @override
+  State<ChannelRow> createState() => _ChannelRow();
+}
+
+List<Channel> actChannels = [];
+
+class _ChannelRow extends State<ChannelRow>
+    with AutomaticKeepAliveClientMixin<ChannelRow> {
+  final ScrollController controllerHorizontal = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    actChannels.add(AddChannelButton(scroll: controllervertical, parent: this));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scrollbar(
+      thickness: 10,
+      thumbVisibility: true,
+      interactive: true,
+      controller: controllerHorizontal,
+      child: SingleChildScrollView(
+          controller: controllerHorizontal,
+          scrollDirection: Axis.horizontal,
+          child: Row(
+              //    mainAxisAlignment: MainAxisAlignment.,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: actChannels)),
+    );
+  }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
 
 class ScrollSyncer {
@@ -113,9 +127,16 @@ class ScrollSyncer {
   }
 }
 
-class AddChannelButton extends StatelessWidget {
-  const AddChannelButton({super.key});
+class AddChannelButton extends Channel {
+  const AddChannelButton(
+      {super.key, required super.scroll, required super.parent});
 
+  @override
+  State<AddChannelButton> createState() => _AddChannelButton();
+}
+
+class _AddChannelButton extends State<AddChannelButton>
+    with AutomaticKeepAliveClientMixin<AddChannelButton> {
   Widget build(BuildContext context) {
     return Center(
         child: Padding(
@@ -135,6 +156,18 @@ class AddChannelButton extends StatelessWidget {
                         child: FloatingActionButton(
                           onPressed: () {
                             // Add your onPressed code here!
+
+                            //myChannelRows = Object();
+                            widget.parent.setState(() {
+                              int idx = actChannels.length - 1;
+
+                              ChannelSettingEV ch = new ChannelSettingEV(
+                                scroll: controllervertical,
+                                parent: widget.parent,
+                                rowIndex: idx,
+                              );
+                              actChannels.insert(idx, ch);
+                            });
                           },
                           //backgroundColor: Colors.green,
                           child: const Icon(Icons.add),
@@ -142,11 +175,11 @@ class AddChannelButton extends StatelessWidget {
                       ))
                 ]))))));
   }
-}
 
-///
-/// Get started button pressed
-void getStartedPressed() {}
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
+}
 
 ///
 /// Enum values
@@ -221,9 +254,9 @@ enum ChannelIndex {
   ch07('07', 6),
   ch08('08', 7),
   ch09('09', 8),
-  ch10('10', 9);
-  //ch11('11', 10),
-  //ch12('12', 11);
+  ch10('10', 9),
+  ch11('11', 10),
+  ch12('12', 11);
   //ch13('13', 12),
   //ch14('14', 13),
   //ch15('15', 14),
@@ -236,10 +269,26 @@ enum ChannelIndex {
   final int value;
 }
 
-class ChannelSettingEV extends StatefulWidget {
-  const ChannelSettingEV({super.key, required this.scroll});
+final ScrollSyncer controllervertical = ScrollSyncer();
+
+abstract class Channel extends StatefulWidget {
+  const Channel(
+      {super.key,
+      required this.scroll,
+      required this.parent,
+      this.rowIndex = -1});
 
   final ScrollSyncer scroll;
+  final _ChannelRow parent;
+  final int rowIndex;
+}
+
+class ChannelSettingEV extends Channel {
+  const ChannelSettingEV(
+      {super.key,
+      required super.scroll,
+      required super.parent,
+      required super.rowIndex});
 
   @override
   State<ChannelSettingEV> createState() => _ChannelSettingEV();
@@ -247,7 +296,8 @@ class ChannelSettingEV extends StatefulWidget {
 
 ///
 /// Title card
-class _ChannelSettingEV extends State<ChannelSettingEV> {
+class _ChannelSettingEV extends State<ChannelSettingEV>
+    with AutomaticKeepAliveClientMixin<ChannelSettingEV> {
   bool useAI = false;
 
   @override
@@ -298,12 +348,11 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
     }
     final ScrollController controllervertical = ScrollController();
 
-
-
     widget.scroll.onChange.listen((newValue) {
-      if (newValue != controllervertical && controllervertical.hasClients && newValue.offset >=0.0) {
+      if (newValue != controllervertical &&
+          controllervertical.hasClients &&
+          newValue.offset >= 0.0) {
         controllervertical.jumpTo(newValue.offset);
-
       }
     });
 
@@ -608,7 +657,13 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
                     Padding(
                         padding: const EdgeInsets.all(20),
                         child: FilledButton(
-                          onPressed: getStartedPressed,
+                          onPressed: () {
+                            widget.parent.setState(() {
+                              actChannels.removeAt(widget.rowIndex);
+                              int id = widget.rowIndex;
+                              print("Remove $id");
+                            });
+                          },
                           child: const Text('Remove'),
                         )),
                   ])),
@@ -616,6 +671,10 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
               ),
             ))));
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
 
 ///
@@ -718,7 +777,8 @@ class ChannelSelector extends StatefulWidget {
   State<ChannelSelector> createState() => _ChannelSelectorState();
 }
 
-class _ChannelSelectorState extends State<ChannelSelector> {
+class _ChannelSelectorState extends State<ChannelSelector>
+    with AutomaticKeepAliveClientMixin<ChannelSelector> {
   Set<ChannelIndex> filters = <ChannelIndex>{};
 
   @override
@@ -757,4 +817,8 @@ class _ChannelSelectorState extends State<ChannelSelector> {
       ),
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
