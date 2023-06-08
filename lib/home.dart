@@ -3,11 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:namer_app/screen_settings.dart';
-
 import 'builder_navbar.dart';
-import 'screen_home.dart';
-import 'screen_analyze.dart';
+import 'screens/screen_home.dart';
+import 'screens/screen_analyze.dart';
 import 'constants.dart';
 
 const List<NavigationDestination> appBarDestinations = [
@@ -364,7 +362,7 @@ class _NavigationTransitionState extends State<NavigationTransition> {
         backgroundColor: colorScheme.surface,
         child: widget.navigationBar,
       ),
-      endDrawer: const NavigationDrawerSection(),
+      //endDrawer: const NavigationDrawerSection(),
     );
   }
 }
