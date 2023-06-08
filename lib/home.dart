@@ -121,6 +121,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       controllerInitialized = true;
       controller.value = width > mediumWidthBreakpoint ? 1 : 0;
     }
+    showLargeSizeLayout = false;
+
   }
 
   void handleScreenChanged(int screenSelected) {

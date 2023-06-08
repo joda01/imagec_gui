@@ -58,24 +58,47 @@ class ScreenAnalyze extends StatelessWidget {
           child: Container(alignment: Alignment.bottomCenter, child: footer()));
     }
 
+final ScrollController controllerHorizontal = ScrollController();
+final ScrollController controllerVertical = ScrollController();
+
+
     return Expanded(child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
-      return SingleChildScrollView(
-          child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: viewportConstraints.maxHeight,
-        ),
-        child: IntrinsicHeight(
-            child: SingleChildScrollView(
-                child: Row(
-                    //    mainAxisAlignment: MainAxisAlignment.,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-              ChannelSettingEV(),
-              ChannelSettingEV(),
-              AddChannelButton()
-            ]))),
-      ));
+      return Scrollbar(
+        thickness: 10,
+        thumbVisibility: true,
+        interactive: true,
+        controller: controllerHorizontal,
+        child: SingleChildScrollView(
+          controller: controllerHorizontal,
+            scrollDirection: Axis.horizontal,
+            child: Scrollbar(
+              thickness: 10,
+              thumbVisibility: true,
+              interactive: true,
+              controller: controllerVertical,
+              child: SingleChildScrollView(
+                controller: controllerVertical,
+                  scrollDirection: Axis.vertical,
+                  child: Row(
+                      //    mainAxisAlignment: MainAxisAlignment.,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      
+                      children: <Widget>[
+                        ChannelSettingEV(),
+                        ChannelSettingEV(),
+                        ChannelSettingEV(),
+                        ChannelSettingEV(),
+                        ChannelSettingEV(),
+                        ChannelSettingEV(),
+                        ChannelSettingEV(),
+                        ChannelSettingEV(),
+                        ChannelSettingEV(),
+                        ChannelSettingEV(),
+                        AddChannelButton()
+                      ])),
+            )),
+      );
     }));
   }
 }
@@ -188,9 +211,9 @@ enum ChannelIndex {
   ch07('07', 6),
   ch08('08', 7),
   ch09('09', 8),
-  ch10('10', 9),
-  ch11('11', 10),
-  ch12('12', 11);
+  ch10('10', 9);
+  //ch11('11', 10),
+  //ch12('12', 11);
   //ch13('13', 12),
   //ch14('14', 13),
   //ch15('15', 14),
@@ -282,12 +305,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
 
             Padding(
                 padding: const EdgeInsets.all(10),
-                child: SizedBox(width: 350, child: ChannelSelector())),
-
-            //
-            // Divider
-            //
-            CustomDivider(),
+                child: SizedBox(width: 220, child: ChannelSelector())),
 
             //
             // Channel labels
@@ -295,7 +313,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
             Padding(
                 padding: const EdgeInsets.all(10),
                 child: DropdownMenu<ChannelLabels>(
-                  width: 320,
+                  width: 230,
                   initialSelection: ChannelLabels.cy3,
                   controller: chLabelsController,
                   leadingIcon: const Icon(Icons.label_outline),
@@ -315,9 +333,9 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
             Padding(
                 padding: const EdgeInsets.all(10),
                 child: SizedBox(
-                  width: 320,
+                  width: 230,
                   child: SwitchListTile(
-                    title: const Text('Use AI for detection'),
+                    title: const Text('Use AI'),
                     secondary: const Icon(Icons.auto_awesome_outlined),
                     value: useAI,
                     onChanged: (value) {
@@ -337,7 +355,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
                 child: Padding(
                     padding: const EdgeInsets.all(10),
                     child: DropdownMenu<ThresholdMethod>(
-                      width: 320,
+                      width: 230,
                       initialSelection: ThresholdMethod.manual,
                       controller: thresholdMethodController,
                       leadingIcon: const Icon(Icons.contrast),
@@ -357,7 +375,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
                 child: Padding(
                     padding: const EdgeInsets.all(10),
                     child: SizedBox(
-                      width: 320,
+                      width: 230,
                       child: TextField(
                         obscureText: false,
                         inputFormatters: [
@@ -386,7 +404,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
                 child: Padding(
                     padding: const EdgeInsets.all(10),
                     child: DropdownMenu<AIModelEV>(
-                      width: 320,
+                      width: 230,
                       initialSelection: AIModelEV.common,
                       controller: aiModelController,
                       leadingIcon: const Icon(Icons.hub_outlined),
@@ -406,7 +424,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
                 child: Padding(
                     padding: const EdgeInsets.all(10),
                     child: SizedBox(
-                      width: 320,
+                      width: 230,
                       child: TextField(
                         obscureText: false,
                         controller: TextEditingController()..text = '80',
@@ -439,7 +457,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
             Padding(
                 padding: const EdgeInsets.all(10),
                 child: SizedBox(
-                  width: 320,
+                  width: 230,
                   child: TextField(
                     obscureText: false,
                     controller: TextEditingController()..text = '80',
@@ -466,7 +484,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
             Padding(
                 padding: const EdgeInsets.all(10),
                 child: SizedBox(
-                  width: 320,
+                  width: 230,
                   child: TextField(
                     obscureText: false,
                     controller: TextEditingController()..text = '5-999999',
@@ -494,7 +512,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
             Padding(
                 padding: const EdgeInsets.all(10),
                 child: SizedBox(
-                  width: 320,
+                  width: 230,
                   child: TextField(
                     obscureText: false,
                     controller: TextEditingController()..text = '0',
@@ -525,7 +543,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
             Padding(
                 padding: const EdgeInsets.all(10),
                 child: SizedBox(
-                  width: 320,
+                  width: 230,
                   child: TextField(
                     obscureText: false,
                     controller: TextEditingController()..text = '0',
@@ -637,7 +655,7 @@ class CustomDivider extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       child: SizedBox(
         height: 10.0,
-        width: 320,
+        width: 230,
         child: Center(
           child: Container(
             margin: EdgeInsetsDirectional.only(start: 1.0, end: 1.0),

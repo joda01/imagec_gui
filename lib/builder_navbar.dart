@@ -47,6 +47,8 @@ class _NavigationBarsState extends State<NavigationBars> {
       autofocus: widget.useAutofocus,
       child: NavigationBar(
           selectedIndex: selectedIndex,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          
           onDestinationSelected: (index) {
             setState(() {
               selectedIndex = index;
