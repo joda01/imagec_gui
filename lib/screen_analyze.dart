@@ -74,16 +74,18 @@ class ChannelRow extends StatefulWidget {
   State<ChannelRow> createState() => _ChannelRow();
 }
 
-List<Channel> actChannels = [];
-
 class _ChannelRow extends State<ChannelRow>
     with AutomaticKeepAliveClientMixin<ChannelRow> {
   final ScrollController controllerHorizontal = ScrollController();
+  List<Channel> actChannels = [];
 
   @override
   void initState() {
     super.initState();
-    actChannels.add(AddChannelButton(scroll: controllervertical, parent: this));
+    actChannels.add(AddChannelButton(
+      scroll: controllervertical,
+      parent: this,
+    ));
   }
 
   @override
@@ -128,15 +130,17 @@ class ScrollSyncer {
 }
 
 class AddChannelButton extends Channel {
-  const AddChannelButton(
-      {super.key, required super.scroll, required super.parent});
+  AddChannelButton({
+    super.key,
+    required super.scroll,
+    required super.parent,
+  });
 
   @override
   State<AddChannelButton> createState() => _AddChannelButton();
 }
 
-class _AddChannelButton extends State<AddChannelButton>
-    with AutomaticKeepAliveClientMixin<AddChannelButton> {
+class _AddChannelButton extends State<AddChannelButton> {
   Widget build(BuildContext context) {
     return Center(
         child: Padding(
@@ -159,14 +163,14 @@ class _AddChannelButton extends State<AddChannelButton>
 
                             //myChannelRows = Object();
                             widget.parent.setState(() {
-                              int idx = actChannels.length - 1;
-
-                              ChannelSettingEV ch = new ChannelSettingEV(
-                                scroll: controllervertical,
-                                parent: widget.parent,
-                                rowIndex: idx,
-                              );
-                              actChannels.insert(idx, ch);
+                              int idx = widget.parent.actChannels.length - 1;
+                              widget.parent.actChannels.insert(
+                                  idx,
+                                  ChannelSettingEV(
+                                    key: UniqueKey(),
+                                    scroll: controllervertical,
+                                    parent: widget.parent,
+                                  ));
                             });
                           },
                           //backgroundColor: Colors.green,
@@ -175,10 +179,6 @@ class _AddChannelButton extends State<AddChannelButton>
                       ))
                 ]))))));
   }
-
-  @override
-  // TODO: implement wantKeepAlive
-  bool get wantKeepAlive => true;
 }
 
 ///
@@ -272,49 +272,34 @@ enum ChannelIndex {
 final ScrollSyncer controllervertical = ScrollSyncer();
 
 abstract class Channel extends StatefulWidget {
-  const Channel(
-      {super.key,
-      required this.scroll,
-      required this.parent,
-      this.rowIndex = -1});
+  Channel({super.key, required this.scroll, required this.parent});
 
   final ScrollSyncer scroll;
   final _ChannelRow parent;
-  final int rowIndex;
 }
 
 class ChannelSettingEV extends Channel {
-  const ChannelSettingEV(
-      {super.key,
-      required super.scroll,
-      required super.parent,
-      required super.rowIndex});
+  ChannelSettingEV({super.key, required super.scroll, required super.parent});
 
   @override
-  State<ChannelSettingEV> createState() => _ChannelSettingEV();
+  State<ChannelSettingEV> createState() => new _ChannelSettingEV();
 }
 
 ///
 /// Title card
-class _ChannelSettingEV extends State<ChannelSettingEV>
-    with AutomaticKeepAliveClientMixin<ChannelSettingEV> {
+class _ChannelSettingEV extends State<ChannelSettingEV> {
   bool useAI = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context)
         .textTheme
         .apply(displayColor: Theme.of(context).colorScheme.onSurface);
-
-    ///
-    /// Channel type
-    final TextEditingController chTypeController = TextEditingController();
-    final List<DropdownMenuEntry<ChannelTypeLabels>> channelTypeEntries =
-        <DropdownMenuEntry<ChannelTypeLabels>>[];
-    for (final ChannelTypeLabels entry in ChannelTypeLabels.values) {
-      channelTypeEntries.add(DropdownMenuEntry<ChannelTypeLabels>(
-          value: entry, label: entry.label));
-    }
 
     ///
     /// Channel labels
@@ -657,11 +642,11 @@ class _ChannelSettingEV extends State<ChannelSettingEV>
                     Padding(
                         padding: const EdgeInsets.all(20),
                         child: FilledButton(
+                          // co:Theme.of(context).colorScheme.onError,
+
                           onPressed: () {
+                            widget.parent.actChannels.remove(widget);
                             widget.parent.setState(() {
-                              actChannels.removeAt(widget.rowIndex);
-                              int id = widget.rowIndex;
-                              print("Remove $id");
                             });
                           },
                           child: const Text('Remove'),
@@ -671,10 +656,6 @@ class _ChannelSettingEV extends State<ChannelSettingEV>
               ),
             ))));
   }
-
-  @override
-  // TODO: implement wantKeepAlive
-  bool get wantKeepAlive => true;
 }
 
 ///
@@ -777,8 +758,7 @@ class ChannelSelector extends StatefulWidget {
   State<ChannelSelector> createState() => _ChannelSelectorState();
 }
 
-class _ChannelSelectorState extends State<ChannelSelector>
-    with AutomaticKeepAliveClientMixin<ChannelSelector> {
+class _ChannelSelectorState extends State<ChannelSelector> {
   Set<ChannelIndex> filters = <ChannelIndex>{};
 
   @override
@@ -817,8 +797,4 @@ class _ChannelSelectorState extends State<ChannelSelector>
       ),
     );
   }
-
-  @override
-  // TODO: implement wantKeepAlive
-  bool get wantKeepAlive => true;
 }
