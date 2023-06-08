@@ -5,44 +5,44 @@ import 'package:flutter/services.dart';
 import 'channel_common.dart';
 
 enum ChannelLabels {
-  cy3('CY3', 'CY3'),
+  cy3('Brightfield', 'BRIGHTFIELD'),
   cy5(
-    'CY5',
-    'CY5',
-  ),
-  cy7('CY7', 'CY7');
+    'Darkfield',
+    'DARKFIELD',
+  );
 
   const ChannelLabels(this.label, this.value);
   final String label;
   final String value;
 }
 
-enum AIModelEV {
-  common('Common v1', 'AI_MODEL_EV_COMMON_V1'),
+enum AIModelNucleus {
+  common('Common v1', 'AI_MODEL_NUCLEUS_COMMON_V1'),
   inVitro(
     'In vitro v1',
-    'AI_MODEL_EV_IN_VITRO_V1',
+    'AI_MODEL_NUCLUES_IN_VITRO_V1',
   ),
   inVivo(
     'In vivo v1',
-    'AI_MODEL_EV_IN_VIVO_V1',
+    'AI_MODEL_NUCLEUS_IN_VIVO_V1',
   );
 
-  const AIModelEV(this.label, this.value);
+  const AIModelNucleus(this.label, this.value);
   final String label;
   final String value;
 }
 
-class ChannelSettingEV extends Channel {
-  ChannelSettingEV({super.key, required super.scroll, required super.parent});
+class ChannelSettingNucleus extends Channel {
+  ChannelSettingNucleus(
+      {super.key, required super.scroll, required super.parent});
 
   @override
-  State<ChannelSettingEV> createState() => new _ChannelSettingEV();
+  State<ChannelSettingNucleus> createState() => new _ChannelSettingNucleus();
 }
 
 ///
 /// Title card
-class _ChannelSettingEV extends State<ChannelSettingEV> {
+class _ChannelSettingNucleus extends State<ChannelSettingNucleus> {
   bool useAI = false;
 
   @override
@@ -80,11 +80,11 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
     ///
     /// AI Model
     final TextEditingController aiModelController = TextEditingController();
-    final List<DropdownMenuEntry<AIModelEV>> aiModelEntries =
-        <DropdownMenuEntry<AIModelEV>>[];
-    for (final AIModelEV entry in AIModelEV.values) {
-      aiModelEntries
-          .add(DropdownMenuEntry<AIModelEV>(value: entry, label: entry.label));
+    final List<DropdownMenuEntry<AIModelNucleus>> aiModelEntries =
+        <DropdownMenuEntry<AIModelNucleus>>[];
+    for (final AIModelNucleus entry in AIModelNucleus.values) {
+      aiModelEntries.add(
+          DropdownMenuEntry<AIModelNucleus>(value: entry, label: entry.label));
     }
     final ScrollController controllervertical = ScrollController();
 
@@ -124,7 +124,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
                     Padding(
                         padding: const EdgeInsets.all(10),
                         child: Text(
-                          "EV",
+                          "Nucleus",
                           style: textTheme.titleLarge,
                         )),
 
@@ -173,7 +173,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
 
                     ////////////////////////////////////////////////////////////////////
                     //
-                    // Thershold method
+                    // Threshold method
                     //
                     Visibility(
                         visible: !useAI,
@@ -184,7 +184,7 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
                               initialSelection: ThresholdMethod.manual,
                               controller: thresholdMethodController,
                               leadingIcon: const Icon(Icons.contrast),
-                              label: const Text('Thresholding'),
+                              label: const Text('Thresholds'),
                               dropdownMenuEntries: thresholdMethodEntries,
                               onSelected: (value) {
                                 //setState(() {
@@ -229,9 +229,9 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
                         visible: useAI,
                         child: Padding(
                             padding: const EdgeInsets.all(10),
-                            child: DropdownMenu<AIModelEV>(
+                            child: DropdownMenu<AIModelNucleus>(
                               width: 230,
-                              initialSelection: AIModelEV.common,
+                              initialSelection: AIModelNucleus.common,
                               controller: aiModelController,
                               leadingIcon: const Icon(Icons.hub_outlined),
                               label: const Text('AI model'),

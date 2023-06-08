@@ -5,8 +5,25 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+List<Channel> actChannels = [];
+State? addChannelButtonStateWidget;
+final ScrollSyncer globalCardControllervertical = ScrollSyncer();
 
-  List<Channel> actChannels = [];
+
+///
+/// Enum pipelines
+enum Pipelines {
+  count('Count', 'COUNT'),
+  coloc(
+    'Coloc',
+    'COLOC',
+  ),
+  inCellColoc('In cell coloc', 'COLOC_IN_CELL');
+
+  const Pipelines(this.label, this.value);
+  final String label;
+  final String value;
+}
 
 
 ///
@@ -17,9 +34,8 @@ enum ChannelTypeLabels {
     'Nucleus',
     'NUCLEUS',
   ),
-  background('Background', 'BACKGROUND'),
-  cellBrightfield('Cell brightfield', 'CELL_BRIGHTFIELD'),
-  cellDarkfield('Cell darkfield', 'CELL_DARKFIELD');
+  cell('Cell', 'CELL'),
+  background('Background', 'BACKGROUND');
 
   const ChannelTypeLabels(this.label, this.value);
   final String label;
@@ -86,7 +102,7 @@ class ScrollSyncer {
     _streamController.close();
   }
 }
-final ScrollSyncer controllervertical = ScrollSyncer();
+
 
 abstract class Channel extends StatefulWidget {
   Channel({super.key, required this.scroll, required this.parent});
@@ -94,7 +110,6 @@ abstract class Channel extends StatefulWidget {
   final ScrollSyncer scroll;
   final State parent;
 }
-
 
 ///
 /// Check if the number of a textfield is between the given two ranges
@@ -158,8 +173,6 @@ class RangeTextInputFormatter extends TextInputFormatter {
   }
 }
 
-
-
 class CustomDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
@@ -174,6 +187,27 @@ class CustomDivider extends StatelessWidget {
             color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
+      ));
+}
+
+class RemoveChannelWidget extends StatelessWidget {
+  RemoveChannelWidget({required this.widget});
+
+  final Channel widget;
+  @override
+  Widget build(BuildContext context) => Padding(
+      padding: const EdgeInsets.all(20),
+      child: FilledButton(
+        // co:Theme.of(context).colorScheme.onError,
+
+        onPressed: () {
+          actChannels.remove(widget);
+          widget.parent.setState(() {});
+          addChannelButtonStateWidget?.setState(() {});
+        },
+        child: const Text('Remove'),
+        style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error),
       ));
 }
 
