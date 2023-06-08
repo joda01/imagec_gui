@@ -639,6 +639,12 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
                                 helperText: 'Margin crop'),
                           ),
                         )),
+
+                    //
+                    // Divider
+                    //
+                    CustomDivider(),
+
                     Padding(
                         padding: const EdgeInsets.all(20),
                         child: FilledButton(
@@ -646,10 +652,12 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
 
                           onPressed: () {
                             widget.parent.actChannels.remove(widget);
-                            widget.parent.setState(() {
-                            });
+                            widget.parent.setState(() {});
                           },
                           child: const Text('Remove'),
+                          style: FilledButton.styleFrom(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.error),
                         )),
                   ])),
                 ),
