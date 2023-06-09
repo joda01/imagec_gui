@@ -51,30 +51,38 @@ class _DialogAnalyze extends State<DialogAnalyze> {
   ///
   /// Get the sctual status
   ///
-  void getStatusTimer() {
+  Timer? _timer;
+  void startTimer() {
     const duration = Duration(seconds: 1);
-    Timer _timer;
     _timer = Timer.periodic(duration, (Timer timer) {
-      getAnalyzeStatus().then((value) {
-        print("VAL: $value");
+      updateStatus();
+    });
+  }
 
-        if (value["status"] == "RUNNING") {
-          double imagesTotal = value["total"]["total"];
-          double imagesTotalFinished = value["total"]["finished"];
+  void stopTimer() {
+    _timer?.cancel();
+  }
 
-          double actImagesTotal = value["actual_image"]["total"];
-          double actImagesTotalFinished = value["actual_image"]["finished"];
-          double progressAll = imagesTotalFinished / imagesTotal;
-          double progressImage = actImagesTotalFinished / actImagesTotal;
+  void updateStatus() {
+    getAnalyzeStatus().then((value) {
+      print("VAL: $value");
 
-          _updateProgress(progressImage, progressAll);
-          _updateState(AnalyzeState.RUNNING);
-        }
-        if (value["status"] == "FINISHED") {
-          _updateProgress(0, 0);
-          _updateState(AnalyzeState.STOPPED);
-        }
-      });
+      if (value["status"] == "RUNNING") {
+        double imagesTotal = value["total"]["total"];
+        double imagesTotalFinished = value["total"]["finished"];
+
+        double actImagesTotal = value["actual_image"]["total"];
+        double actImagesTotalFinished = value["actual_image"]["finished"];
+        double progressAll = imagesTotalFinished / imagesTotal;
+        double progressImage = actImagesTotalFinished / actImagesTotal;
+
+        _updateProgress(progressImage, progressAll);
+        _updateState(AnalyzeState.RUNNING);
+      }
+      if (value["status"] == "FINISHED") {
+        _updateProgress(0, 0);
+        _updateState(AnalyzeState.STOPPED);
+      }
     });
   }
 
@@ -117,14 +125,20 @@ class _DialogAnalyze extends State<DialogAnalyze> {
 
   @override
   void initState() {
-    getStatusTimer();
-
+    startTimer();
     for (final Pipelines entry in Pipelines.values) {
       pipelinesentries
           .add(DropdownMenuEntry<Pipelines>(value: entry, label: entry.label));
     }
+    updateStatus();
 
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    stopTimer();
   }
 
   @override
