@@ -14,24 +14,30 @@ import '../logic/backend_communication.dart';
 
 enum AnalyzeState { STOPPED, STOPPING, STARTING, RUNNING }
 
+TextEditingController inputFolder = new TextEditingController();
+TextEditingController cpus = TextEditingController(text: "1");
+TextEditingController pipelinesController = TextEditingController();
+Pipelines? selectedPipeline = Pipelines.count;
+
 class DialogAnalyze extends StatefulWidget {
   @override
   _DialogAnalyze createState() => new _DialogAnalyze();
 }
 
-class _DialogAnalyze extends State<DialogAnalyze> {
+class _DialogAnalyze extends State<DialogAnalyze>
+    with AutomaticKeepAliveClientMixin<DialogAnalyze> {
   double _progressAll = 0;
   double _progressImage = 0;
   AnalyzeState _state = AnalyzeState.STOPPED;
 
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
+
   ///
   /// Channel labels
-  final TextEditingController pipelinesController = TextEditingController();
   final List<DropdownMenuEntry<Pipelines>> pipelinesentries =
       <DropdownMenuEntry<Pipelines>>[];
-
-  TextEditingController inputFolder = new TextEditingController();
-  Pipelines? selectedPipeline = Pipelines.count;
 
   void _updateProgress(double perImage, double total) {
     setState(() {
@@ -131,7 +137,6 @@ class _DialogAnalyze extends State<DialogAnalyze> {
           .add(DropdownMenuEntry<Pipelines>(value: entry, label: entry.label));
     }
     updateStatus();
-
     super.initState();
   }
 
@@ -178,7 +183,7 @@ class _DialogAnalyze extends State<DialogAnalyze> {
                           padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
                           child: SizedBox(
                             child: TextField(
-                              controller: TextEditingController()..text = '1',
+                              controller: cpus,
                               obscureText: false,
                               inputFormatters: [
                                 FilteringTextInputFormatter.allow(
@@ -199,7 +204,7 @@ class _DialogAnalyze extends State<DialogAnalyze> {
                       Padding(
                           padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
                           child: DropdownMenu<Pipelines>(
-                            initialSelection: Pipelines.count,
+                            initialSelection: selectedPipeline,
                             controller: pipelinesController,
                             leadingIcon: const Icon(Icons.functions_outlined),
                             label: const Text('Pipeline'),

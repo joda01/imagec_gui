@@ -17,6 +17,8 @@ import '../dialogs/dialog_analyze.dart';
 import '../logic/analyzer_settings.dart';
 import '../logic/backend_communication.dart';
 
+
+DialogAnalyze dialogAnalyze = DialogAnalyze();
 const Widget divider = SizedBox(height: 10);
 
 // If screen content width is greater or equal to this value, the light and dark
@@ -238,7 +240,7 @@ class _AddChannelButton extends State<AddChannelButton>
     showDialog<void>(
         context: context,
         builder: (_) {
-          return DialogAnalyze();
+          return  dialogAnalyze;
         });
   }
 
