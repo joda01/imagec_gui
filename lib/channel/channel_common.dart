@@ -9,7 +9,6 @@ List<Channel> actChannels = [];
 State? addChannelButtonStateWidget;
 final ScrollSyncer globalCardControllervertical = ScrollSyncer();
 
-
 ///
 /// Enum pipelines
 enum Pipelines {
@@ -24,7 +23,6 @@ enum Pipelines {
   final String label;
   final String value;
 }
-
 
 ///
 /// Enum values
@@ -103,12 +101,13 @@ class ScrollSyncer {
   }
 }
 
-
 abstract class Channel extends StatefulWidget {
   Channel({super.key, required this.scroll, required this.parent});
 
   final ScrollSyncer scroll;
   final State parent;
+
+  Object toJsonObject();
 }
 
 ///
@@ -117,6 +116,25 @@ class CheckForNonEmptyTextField extends TextInputFormatter {
   final RegExp regex;
 
   CheckForNonEmptyTextField({required this.regex});
+
+
+  Object toJsonObject() {
+    final channelSettings = {
+      "index": [1, 2],
+      "type": "EV",
+      "threshold_algorithm": "LI",
+      "label": "CY5",
+      "threshold_min": 65536,
+      "threshold_max": 123,
+      "min_particle_size": 0.25,
+      "max_particle_size": 0.23,
+      "min_circularity": 0.2,
+      "snap_area_size": 2,
+      "margin_crop": 1,
+      "zprojection": "MAX"
+    };
+    return channelSettings;
+  }
 
   @override
   TextEditingValue formatEditUpdate(
@@ -136,6 +154,8 @@ class CheckForNonEmptyTextField extends TextInputFormatter {
     }
   }
 }
+
+
 
 ///
 /// Check if the number of a textfield is between the given two ranges

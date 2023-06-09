@@ -36,14 +36,40 @@ class ChannelSettingNucleus extends Channel {
   ChannelSettingNucleus(
       {super.key, required super.scroll, required super.parent});
 
+  final _ChannelSettingNucleus settings = _ChannelSettingNucleus();
+
   @override
-  State<ChannelSettingNucleus> createState() => new _ChannelSettingNucleus();
+  State<ChannelSettingNucleus> createState() => settings;
+
+  @override
+  Object toJsonObject() {
+    return settings.toJsonObject();
+  }
 }
 
 ///
 /// Title card
 class _ChannelSettingNucleus extends State<ChannelSettingNucleus> {
   bool useAI = false;
+
+
+  Object toJsonObject() {
+    final channelSettings = {
+      "index": [1, 2],
+      "type": "EV",
+      "threshold_algorithm": "LI",
+      "label": "CY5",
+      "threshold_min": 65536,
+      "threshold_max": 123,
+      "min_particle_size": 0.25,
+      "max_particle_size": 0.23,
+      "min_circularity": 0.2,
+      "snap_area_size": 2,
+      "margin_crop": 1,
+      "zprojection": "MAX"
+    };
+    return channelSettings;
+  }
 
   @override
   void initState() {

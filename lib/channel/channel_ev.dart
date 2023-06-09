@@ -36,8 +36,15 @@ enum AIModelEV {
 class ChannelSettingEV extends Channel {
   ChannelSettingEV({super.key, required super.scroll, required super.parent});
 
+  final _ChannelSettingEV settings = _ChannelSettingEV();
+
   @override
-  State<ChannelSettingEV> createState() => new _ChannelSettingEV();
+  State<ChannelSettingEV> createState() => settings;
+
+  @override
+  Object toJsonObject() {
+    return settings.toJsonObject();
+  }
 }
 
 ///
@@ -48,6 +55,24 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
   @override
   void initState() {
     super.initState();
+  }
+
+  Object toJsonObject() {
+    final channelSettings = {
+      "index": [1, 2],
+      "type": "EV",
+      "threshold_algorithm": "LI",
+      "label": "CY5",
+      "threshold_min": 65536,
+      "threshold_max": 123,
+      "min_particle_size": 0.25,
+      "max_particle_size": 0.23,
+      "min_circularity": 0.2,
+      "snap_area_size": 2,
+      "margin_crop": 1,
+      "zprojection": "MAX"
+    };
+    return channelSettings;
   }
 
   @override
