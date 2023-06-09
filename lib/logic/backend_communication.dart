@@ -67,7 +67,7 @@ Future<Map<String, dynamic>> getAnalyzeStatus() async {
 ///
 /// \brief Start analyze
 ///
-Future<(List<dynamic>,String)> listFolders(String startFolder) async {
+Future<(List<dynamic>, String)> listFolders(String startFolder) async {
   final url = Uri.parse('$BASE_URL/api/v1/listfolders');
 
   final headers = {'Content-Type': 'application/json'};
@@ -79,10 +79,16 @@ Future<(List<dynamic>,String)> listFolders(String startFolder) async {
   if (response.statusCode == 200) {
     // Request successful, parse the response
     final decoded = jsonDecode(response.body);
-    final responseData =
-        decoded["directories"] as List<dynamic>;
-        final homePath = decoded["home"] as String;
-    return (responseData,homePath);
+    
+    final homePath = decoded["home"] as String;
+
+    if (decoded["directories"] != null) {
+      final responseData = decoded["directories"] as List<dynamic>;
+      return (responseData, homePath);
+    } else {
+      List<dynamic> ls = [];
+      return (ls, homePath);
+    }
   }
   throw Exception(response.statusCode);
   // Request failed, handle the error
