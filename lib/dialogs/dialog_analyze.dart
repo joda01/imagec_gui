@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:js_util';
 
 import 'package:flutter/gestures.dart';
@@ -11,6 +12,7 @@ import '../channel/channel_ev.dart';
 import '../channel/channel_nucleus.dart';
 import '../logic/analyzer_settings.dart';
 import '../logic/backend_communication.dart';
+import 'dart:html' as html;
 
 enum AnalyzeState { STOPPED, STOPPING, STARTING, RUNNING }
 
@@ -52,6 +54,12 @@ class _DialogAnalyze extends State<DialogAnalyze>
         _state = state;
       });
     }
+  }
+
+  void _updateFolderPath(String path) {
+    setState(() {
+      inputFolder.text = path;
+    });
   }
 
   ///
@@ -146,6 +154,43 @@ class _DialogAnalyze extends State<DialogAnalyze>
     stopTimer();
   }
 
+  String selectedFolder = "";
+  String newSelectedFolder = "";
+
+  void onSelectionChange(String newFolder) {
+    newSelectedFolder = newFolder;
+  }
+
+  void showOpenFolderDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select directory'),
+        content: SizedBox(
+            width: 300,
+            height: 300,
+            child: ListBuilder(
+                isSelectionMode: true,
+                onSelectionChange: onSelectionChange,
+                selectedElement: newSelectedFolder)),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Dismiss'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          FilledButton(
+            child: const Text('Okay'),
+            onPressed: () {
+              _updateFolderPath(newSelectedFolder!);
+              addChannelButtonStateWidget?.setState(() {});
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog.fullscreen(
@@ -169,6 +214,7 @@ class _DialogAnalyze extends State<DialogAnalyze>
                           child: TextField(
                             obscureText: false,
                             controller: inputFolder,
+                            onTap: showOpenFolderDialog,
                             decoration: InputDecoration(
                                 prefixIcon:
                                     const Icon(Icons.folder_open_outlined),
@@ -268,5 +314,147 @@ class _DialogAnalyze extends State<DialogAnalyze>
         ),
       ),
     );
+  }
+}
+
+class ListBuilder extends StatefulWidget {
+  ListBuilder({
+    super.key,
+    required this.selectedElement,
+    required this.isSelectionMode,
+    required this.onSelectionChange,
+  });
+
+  final bool isSelectionMode;
+  String activeFolder = "";
+  String selectedElement;
+  final List<bool> selectedList = [false, false];
+  final List<(String, String)> directoriesEntries = [];
+  final Function(String)? onSelectionChange;
+
+  Future<void> setListParameters() async {
+    final (directories, homePath) = await listFolders(activeFolder);
+
+    directoriesEntries.clear();
+    selectedList.clear();
+
+    if (activeFolder.isEmpty) {
+      activeFolder = homePath;
+    }
+
+    String firstEntry = activeFolder;
+    if (firstEntry.lastIndexOf("/") > 0) {
+      firstEntry = firstEntry.substring(0, firstEntry.lastIndexOf("/"));
+      // firstEntry = firstEntry.substring(0, firstEntry.lastIndexOf("/"));
+    } else {
+      // We reached the root path
+      firstEntry = "/";
+    }
+
+    directoriesEntries.add(("..", firstEntry));
+    selectedList.add(false);
+
+    for (final String entry in directories) {
+      String folderName = entry;
+      folderName = entry.substring(entry.lastIndexOf("/") + 1);
+      
+      // Do not add hidden folder to the list
+      if (!folderName.startsWith(".")) {
+        directoriesEntries.add((folderName, entry));
+        selectedList.add(false);
+      }
+    }
+  }
+
+  @override
+  State<ListBuilder> createState() => _ListBuilderState();
+}
+
+class _ListBuilderState extends State<ListBuilder> {
+  void _toggle(int index) {
+    if (widget.isSelectionMode) {
+      setState(() {
+        widget.selectedList[index] = !widget.selectedList[index];
+      });
+    }
+  }
+
+  void updateList() {
+    final f = widget.setListParameters();
+    f.then((value) {
+      setState(() {});
+    });
+  }
+
+  final ScrollController listViewScrollController = ScrollController();
+  final double listItemHeight = 45;
+
+  @override
+  void initState() {
+    super.initState();
+
+    String firstEntry = widget.selectedElement;
+    if (firstEntry.lastIndexOf("/") > 0) {
+      firstEntry = firstEntry.substring(0, firstEntry.lastIndexOf("/"));
+    } else {
+      firstEntry = "/";
+    }
+
+    widget.activeFolder = firstEntry;
+    final f = widget.setListParameters();
+    f.then((value) {
+      for (int n = 0; n < widget.directoriesEntries.length; n++) {
+        if (widget.directoriesEntries[n].$2 == widget.selectedElement) {
+          widget.selectedList[n] = true;
+          listViewScrollController.jumpTo(n * listItemHeight);
+        }
+      }
+      setState(() {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+        controller: listViewScrollController,
+        itemCount: widget.directoriesEntries.length,
+        itemBuilder: (_, int index) {
+          return SizedBox(
+              height: listItemHeight,
+              child: ListTile(
+                  onTap: () => {
+                        _toggle(index),
+                        widget.activeFolder =
+                            widget.directoriesEntries[index].$2,
+                        updateList()
+                      },
+                  onLongPress: () {
+                    if (!widget.isSelectionMode) {
+                      setState(() {
+                        widget.selectedList[index] = true;
+                      });
+                      widget.onSelectionChange!(
+                          widget.directoriesEntries[index].$2);
+                    }
+                  },
+                  trailing: widget.isSelectionMode && index > 0
+                      ? Checkbox(
+                          value: widget.selectedList[index],
+                          onChanged: (bool? x) => {
+                            for (int n = 0; n < widget.selectedList.length; n++)
+                              {
+                                widget.selectedList[n] = false,
+                              },
+                            _toggle(index),
+                            if (true == x)
+                              {
+                                widget.onSelectionChange!(
+                                    widget.directoriesEntries[index].$2)
+                              }
+                          },
+                        )
+                      : const SizedBox.shrink(),
+                  title: Text(widget.directoriesEntries[index].$1)));
+        });
   }
 }
