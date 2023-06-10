@@ -21,6 +21,9 @@ TextEditingController cpus = TextEditingController(text: "1");
 TextEditingController pipelinesController = TextEditingController();
 Pipelines? selectedPipeline = Pipelines.count;
 
+  String selectedFolder = "";
+  String newSelectedFolder = "";
+
 class DialogAnalyze extends StatefulWidget {
   @override
   _DialogAnalyze createState() => new _DialogAnalyze();
@@ -154,8 +157,7 @@ class _DialogAnalyze extends State<DialogAnalyze>
     stopTimer();
   }
 
-  String selectedFolder = "";
-  String newSelectedFolder = "";
+
 
   void onSelectionChange(String newFolder) {
     newSelectedFolder = newFolder;
