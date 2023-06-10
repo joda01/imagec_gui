@@ -34,6 +34,10 @@ class _DialogAnalyze extends State<DialogAnalyze>
   double _progressAll = 0;
   double _progressImage = 0;
   AnalyzeState _state = AnalyzeState.STOPPED;
+  String activeFolder = "/";
+  final ScrollController scrollVert = ScrollController();
+  String _progressImageString = "-";
+  String _progressAllString = "-";
 
   @override
   // TODO: implement wantKeepAlive
@@ -84,6 +88,9 @@ class _DialogAnalyze extends State<DialogAnalyze>
     _timer?.cancel();
   }
 
+  ///
+  /// Update the analyze status
+  ///
   void updateStatus() {
     getAnalyzeStatus().then((value) {
       print("VAL: $value");
@@ -94,15 +101,32 @@ class _DialogAnalyze extends State<DialogAnalyze>
 
         double actImagesTotal = value["actual_image"]["total"];
         double actImagesTotalFinished = value["actual_image"]["finished"];
-        double progressAll = imagesTotalFinished / imagesTotal;
-        double progressImage = actImagesTotalFinished / actImagesTotal;
 
+        double progressAll = 0;
+        if (imagesTotal > 0) {
+          progressAll = imagesTotalFinished / imagesTotal;
+        }
+        double progressImage = 0;
+        if (actImagesTotal > 0) {
+          progressImage = actImagesTotalFinished / actImagesTotal;
+        }
         _updateProgress(progressImage, progressAll);
         _updateState(AnalyzeState.RUNNING);
+
+        setState(() {
+          _progressAllString = "Images: $imagesTotalFinished / $imagesTotal";
+          _progressImageString =
+              "Tiles: $actImagesTotalFinished / $actImagesTotal";
+        });
       }
       if (value["status"] == "FINISHED") {
         _updateProgress(0, 0);
         _updateState(AnalyzeState.STOPPED);
+
+        setState(() {
+          _progressImageString = "";
+          _progressAllString = "";
+        });
       }
     });
   }
@@ -142,8 +166,9 @@ class _DialogAnalyze extends State<DialogAnalyze>
     }
   }
 
-  final ScrollController scrollVert = ScrollController();
-
+  ///
+  ///
+  ///
   @override
   void initState() {
     startTimer();
@@ -161,7 +186,9 @@ class _DialogAnalyze extends State<DialogAnalyze>
     stopTimer();
   }
 
-  String activeFolder = "/";
+  ///
+  /// Show open folder dialog
+  ///
   void showOpenFolderDialog() {
     showDialog<void>(
       context: context,
@@ -210,6 +237,8 @@ class _DialogAnalyze extends State<DialogAnalyze>
                       Padding(
                           padding: const EdgeInsets.all(20.0),
                           child: TextField(
+                            enabled:
+                                _state == AnalyzeState.STOPPED ? true : false,
                             obscureText: false,
                             controller: inputFolder,
                             onTap: showOpenFolderDialog,
@@ -223,75 +252,106 @@ class _DialogAnalyze extends State<DialogAnalyze>
                                 helperText:
                                     'Folder where your images are stored in.'),
                           )),
-                      Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                          child: SizedBox(
-                            child: TextField(
-                              controller: cpus,
-                              obscureText: false,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                    RegExp(r'^\d+\.?\d{0,2}')),
-                                RangeTextInputFormatter(min: 1, max: 65536)
-                              ],
-                              keyboardType: TextInputType.numberWithOptions(
-                                  decimal: true),
-                              decoration: InputDecoration(
-                                  prefixIcon: const Icon(Icons.memory_outlined),
-                                  border: OutlineInputBorder(),
-                                  labelText: 'CPUs',
-                                  suffixText: '',
-                                  hintText: '[0-65536]',
-                                  helperText: 'Number of CPUs to use.'),
+                      Wrap(
+                          //crossAxisAlignment: CrossAxisAlignment.stretch,
+                          //mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                                //width: 350,
+                                child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        20, 10, 20, 10),
+                                    child: DropdownMenu<Pipelines>(
+                                      enabled: _state == AnalyzeState.STOPPED
+                                          ? true
+                                          : false,
+                                      //width: 330,
+                                      initialSelection: selectedPipeline,
+                                      controller: pipelinesController,
+                                      leadingIcon:
+                                          const Icon(Icons.functions_outlined),
+                                      label: const Text('Pipeline'),
+                                      helperText: "Select analyzes pipeline.",
+                                      dropdownMenuEntries: pipelinesentries,
+                                      onSelected: (value) =>
+                                          selectedPipeline = value,
+                                    ))),
+                            SizedBox(
+                              width: 250,
+                              height: 95,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                child: TextField(
+                                  enabled: _state == AnalyzeState.STOPPED
+                                      ? true
+                                      : false,
+                                  controller: cpus,
+                                  obscureText: false,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                        RegExp(r'^\d+\.?\d{0,2}')),
+                                    RangeTextInputFormatter(min: 1, max: 65536)
+                                  ],
+                                  keyboardType: TextInputType.numberWithOptions(
+                                      decimal: true),
+                                  decoration: InputDecoration(
+                                      prefixIcon:
+                                          const Icon(Icons.memory_outlined),
+                                      border: OutlineInputBorder(),
+                                      labelText: 'CPUs',
+                                      suffixText: '',
+                                      hintText: '[0-65536]',
+                                      helperText: 'Number of CPUs to use.'),
+                                ),
+                              ),
                             ),
-                          )),
-                      Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                          child: DropdownMenu<Pipelines>(
-                            initialSelection: selectedPipeline,
-                            controller: pipelinesController,
-                            leadingIcon: const Icon(Icons.functions_outlined),
-                            label: const Text('Pipeline'),
-                            dropdownMenuEntries: pipelinesentries,
-                            onSelected: (value) => selectedPipeline = value,
-                          )),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                        child: FilledButton(
-                          onPressed: _isEnabled()
-                              ? () {
-                                  if (_state == AnalyzeState.STOPPED) {
-                                    _updateState(AnalyzeState.STARTING);
-                                    var promise = startAnalyze(
-                                        generateAnalyzeSettings(
-                                            selectedPipeline!.value,
-                                            inputFolder.text));
-                                  } else {
-                                    _updateState(AnalyzeState.STOPPING);
-                                    var promise = stopAnalyze();
-                                  }
-                                }
-                              : null,
-                          style: FilledButton.styleFrom(
-                              //  backgroundColor: Theme.of(context).colorScheme.error),
-                              backgroundColor: _getButtonColor()),
-                          child: _getButtonText(),
-                        ),
+                          ]),
+                      CustomDivider(
+                        padding: 20,
                       ),
-                      CustomDivider(),
+                      Wrap(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                            child: FilledButton(
+                              onPressed: _isEnabled()
+                                  ? () {
+                                      if (_state == AnalyzeState.STOPPED) {
+                                        _updateState(AnalyzeState.STARTING);
+                                        var promise = startAnalyze(
+                                            generateAnalyzeSettings(
+                                                selectedPipeline!.value,
+                                                inputFolder.text));
+                                      } else {
+                                        _updateState(AnalyzeState.STOPPING);
+                                        var promise = stopAnalyze();
+                                      }
+                                    }
+                                  : null,
+                              style: FilledButton.styleFrom(
+                                  //  backgroundColor: Theme.of(context).colorScheme.error),
+                                  backgroundColor: _getButtonColor()),
+                              child: _getButtonText(),
+                            ),
+                          )
+                        ],
+                      ),
+                      Center(child: Text(_progressImageString)),
                       Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 2),
+                          padding: const EdgeInsets.fromLTRB(20, 2, 20, 2),
                           child: LinearProgressIndicator(
                             minHeight: 10,
                             value: _progressImage,
-                            semanticsLabel: 'Linear progress indicator',
+                            semanticsLabel: 'progress per image',
                           )),
+                      Center(child: Text(_progressAllString)),
                       Padding(
                           padding: const EdgeInsets.fromLTRB(20, 2, 20, 10),
                           child: LinearProgressIndicator(
                             minHeight: 15,
                             value: _progressAll,
-                            semanticsLabel: 'Linear progress indicator',
+                            semanticsLabel: 'total progress',
                           )),
                     ],
                   ))),

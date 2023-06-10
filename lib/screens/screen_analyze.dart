@@ -171,7 +171,7 @@ class _AddChannelButton extends State<AddChannelButton>
           value: entry, label: entry.label));
     }
 
-    ChannelTypeLabels? selectedChannelType = ChannelTypeLabels.ev;
+    ChannelTypeLabels? selectedChannelType = ChannelTypeLabels.nucleus;
 
     showDialog<void>(
       context: context,
@@ -179,7 +179,7 @@ class _AddChannelButton extends State<AddChannelButton>
         title: const Text('Add new Channel:'),
         content: DropdownMenu<ChannelTypeLabels>(
           width: 230,
-          initialSelection: ChannelTypeLabels.ev,
+          initialSelection: ChannelTypeLabels.nucleus,
           controller: channelTypesController,
           leadingIcon: const Icon(Icons.layers_outlined),
           label: const Text('Channel type'),

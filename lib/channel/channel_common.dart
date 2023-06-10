@@ -27,13 +27,13 @@ enum Pipelines {
 ///
 /// Enum values
 enum ChannelTypeLabels {
-  ev('EV', 'EV'),
   nucleus(
-    'Nucleus',
+    'Nucleus (alpha)',
     'NUCLEUS',
   ),
-  cell('Cell', 'CELL'),
-  background('Background', 'BACKGROUND');
+  cell('Cell (NA)', 'CELL'),
+  ev('EV (NA)', 'EV'),
+  background('Background (NA)', 'BACKGROUND');
 
   const ChannelTypeLabels(this.label, this.value);
   final String label;
@@ -117,7 +117,6 @@ class CheckForNonEmptyTextField extends TextInputFormatter {
 
   CheckForNonEmptyTextField({required this.regex});
 
-
   Object toJsonObject() {
     final channelSettings = {
       "index": [1, 2],
@@ -154,8 +153,6 @@ class CheckForNonEmptyTextField extends TextInputFormatter {
     }
   }
 }
-
-
 
 ///
 /// Check if the number of a textfield is between the given two ranges
@@ -194,9 +191,11 @@ class RangeTextInputFormatter extends TextInputFormatter {
 }
 
 class CustomDivider extends StatelessWidget {
+  CustomDivider({this.padding = 10});
+  final double padding;
   @override
   Widget build(BuildContext context) => Padding(
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsets.all(padding),
       child: SizedBox(
         height: 10.0,
         width: 230,
@@ -229,6 +228,27 @@ class RemoveChannelWidget extends StatelessWidget {
         style: FilledButton.styleFrom(
             backgroundColor: Theme.of(context).colorScheme.error),
       ));
+}
+
+class PreviewButton extends StatelessWidget {
+  PreviewButton({required this.widget});
+
+  final Channel widget;
+  @override
+  Widget build(BuildContext context) => Padding(
+      padding: const EdgeInsets.all(20),
+      child: FilledButton(
+          // co:Theme.of(context).colorScheme.onError,
+
+          onPressed: () {
+            //actChannels.remove(widget);
+            //widget.parent.setState(() {});
+            //addChannelButtonStateWidget?.setState(() {});
+          },
+          child: const Text('Preview'),
+          style: FilledButton.styleFrom(
+              //backgroundColor: Theme.of(context).colorScheme.error),
+              )));
 }
 
 ///

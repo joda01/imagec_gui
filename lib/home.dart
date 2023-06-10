@@ -21,22 +21,22 @@ const List<NavigationDestination> appBarDestinations = [
     label: 'Analyze',
     selectedIcon: Icon(Icons.broken_image),
   ),
-  NavigationDestination(
-    tooltip: '',
-    icon: Icon(Icons.settings_outlined),
-    label: 'Settings',
-    selectedIcon: Icon(Icons.settings),
-  ),
-  NavigationDestination(
-    tooltip: '',
-    icon: Icon(Icons.info_outline),
-    label: 'About',
-    selectedIcon: Icon(Icons.info),
-  )
+  //NavigationDestination(
+  //  tooltip: '',
+  //  icon: Icon(Icons.settings_outlined),
+  //  label: 'Settings',
+  //  selectedIcon: Icon(Icons.settings),
+  //),
+  //NavigationDestination(
+  //  tooltip: '',
+  //  icon: Icon(Icons.info_outline),
+  //  label: 'About',
+  //  selectedIcon: Icon(Icons.info),
+  //)
 ];
 
 class Home extends StatefulWidget {
-  const Home({
+  Home({
     super.key,
     required this.useLightMode,
     required this.useMaterial3,
@@ -53,10 +53,10 @@ class Home extends StatefulWidget {
   final void Function(bool useLightMode) handleBrightnessChange;
 
   @override
-  State<Home> createState() => _HomeState();
+  State<Home> createState() => HomeState();
 }
 
-class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
+class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   late final AnimationController controller;
   late final CurvedAnimation railAnimation;
@@ -72,6 +72,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   @override
   initState() {
     super.initState();
+    homeState = this;
     controller = AnimationController(
       duration: Duration(milliseconds: transitionLength.toInt() * 2),
       value: 0,
@@ -129,6 +130,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   void handleScreenChanged(int screenSelected) {
     setState(() {
+      screenIndex = screenSelected;
       _pageController.jumpToPage(screenSelected);
     });
   }
