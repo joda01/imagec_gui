@@ -61,16 +61,22 @@ class _ChannelSettingEV extends State<ChannelSettingEV> {
     final channelSettings = {
       "index": [1, 2],
       "type": "EV",
-      "threshold_algorithm": "LI",
       "label": "CY5",
-      "threshold_min": 65536,
-      "threshold_max": 123,
+      "thresholds": {
+        "threshold_algorithm": "LI",
+        "threshold_min": 65536,
+        "threshold_max": 123,
+      },
+      "ai_settings": {
+        "model_name": "nucleus_detection_ex_vivo_v1.onnx"
+      },
       "min_particle_size": 0.25,
       "max_particle_size": 0.23,
       "min_circularity": 0.2,
       "snap_area_size": 2,
       "margin_crop": 1,
-      "zprojection": "MAX"
+      "zprojection": "MAX",
+      "detection_mode": "AI"
     };
     return channelSettings;
   }
