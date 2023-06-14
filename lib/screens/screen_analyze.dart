@@ -2,20 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:convert';
-import 'dart:js_util';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
 import '../channel/channel_common.dart';
 import '../channel/channel_ev.dart';
 import '../channel/channel_nucleus.dart';
 import '../dialogs/dialog_analyze.dart';
-import '../logic/analyzer_settings.dart';
-import '../logic/backend_communication.dart';
 
 
 DialogAnalyze dialogAnalyze = DialogAnalyze();

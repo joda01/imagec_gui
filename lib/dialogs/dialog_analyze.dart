@@ -1,18 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'dart:js_util';
-
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import '../channel/channel_common.dart';
-import '../channel/channel_ev.dart';
-import '../channel/channel_nucleus.dart';
 import '../logic/analyzer_settings.dart';
 import '../logic/backend_communication.dart';
-import 'dart:html' as html;
 
 enum AnalyzeState { STOPPED, STOPPING, STARTING, RUNNING }
 
