@@ -1,20 +1,9 @@
-# imagex_gui
+# imagec_gui
 
-A new Flutter project.
+Graphical user interface for `imageC` scientific imaging processing software.
 
-`flutter build web`  
+*light mode*
+![doc/screen_01.png](doc/screen_01.png)
 
-`flutter build web --web-renderer html`
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+*dark mode*
+![doc/screen_02.png](doc/screen_02.png)
