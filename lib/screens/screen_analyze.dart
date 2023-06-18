@@ -152,7 +152,7 @@ class _ChannelRow extends State<ChannelRow>
           ),
           SizedBox(
             child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                padding: const EdgeInsets.fromLTRB(5, 20, 5, 5),
                 child: TextField(
                   obscureText: false,
                   controller: inputFolder,
@@ -160,10 +160,9 @@ class _ChannelRow extends State<ChannelRow>
                   decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.folder_open_outlined),
                       border: OutlineInputBorder(),
-                      labelText: 'Input folder',
+                      labelText: 'Folder where your images are stored in.',
                       suffixText: '',
-                      hintText: '/home/user/images/',
-                      helperText: 'Folder where your images are stored in.'),
+                      hintText: '/home/user/images/'),
                 )),
           ),
         ],
