@@ -2,14 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../channel/channel_common.dart';
 import '../channel/channel_ev.dart';
 import '../channel/channel_nucleus.dart';
 import '../dialogs/dialog_analyze.dart';
-
 
 DialogAnalyze dialogAnalyze = DialogAnalyze();
 const Widget divider = SizedBox(height: 10);
@@ -90,20 +88,86 @@ class _ChannelRow extends State<ChannelRow>
     ));
   }
 
+  void _updateFolderPath(String path) {
+    setState(() {
+      inputFolder.text = path;
+    });
+  }
+
+  void _onSelectionChange(String newFolder) {
+    newSelectedFolder = newFolder;
+  }
+
+  ///
+  /// Show open folder dialog
+  ///
+  void showOpenFolderDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select directory'),
+        content: OpenFolderDialog(
+            isSelectionMode: true,
+            onSelectionChange: _onSelectionChange,
+            selectedElement: newSelectedFolder),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Dismiss'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          FilledButton(
+            child: const Text('Okay'),
+            onPressed: () {
+              _updateFolderPath(newSelectedFolder!);
+              addChannelButtonStateWidget?.setState(() {});
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scrollbar(
-      thickness: 10,
-      thumbVisibility: true,
-      interactive: true,
-      controller: controllerHorizontal,
-      child: SingleChildScrollView(
-          controller: controllerHorizontal,
-          scrollDirection: Axis.horizontal,
-          child: Row(
-              //    mainAxisAlignment: MainAxisAlignment.,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: actChannels)),
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Scrollbar(
+              thickness: 10,
+              thumbVisibility: true,
+              interactive: true,
+              controller: controllerHorizontal,
+              child: SingleChildScrollView(
+                  controller: controllerHorizontal,
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                      //    mainAxisAlignment: MainAxisAlignment.,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: actChannels)),
+            ),
+          ),
+          SizedBox(
+            child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                child: TextField(
+                  obscureText: false,
+                  controller: inputFolder,
+                  onTap: showOpenFolderDialog,
+                  decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.folder_open_outlined),
+                      border: OutlineInputBorder(),
+                      labelText: 'Input folder',
+                      suffixText: '',
+                      hintText: '/home/user/images/',
+                      helperText: 'Folder where your images are stored in.'),
+                )),
+          ),
+        ],
+      ),
     );
   }
 
@@ -233,7 +297,7 @@ class _AddChannelButton extends State<AddChannelButton>
     showDialog<void>(
         context: context,
         builder: (_) {
-          return  dialogAnalyze;
+          return dialogAnalyze;
         });
   }
 

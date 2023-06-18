@@ -54,16 +54,6 @@ class _DialogAnalyze extends State<DialogAnalyze>
     }
   }
 
-  void _updateFolderPath(String path) {
-    setState(() {
-      inputFolder.text = path;
-    });
-  }
-
-  void _onSelectionChange(String newFolder) {
-    newSelectedFolder = newFolder;
-  }
-
   ///
   /// Get the sctual status
   ///
@@ -177,35 +167,7 @@ class _DialogAnalyze extends State<DialogAnalyze>
     stopTimer();
   }
 
-  ///
-  /// Show open folder dialog
-  ///
-  void showOpenFolderDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select directory'),
-        content: OpenFolderDialog(
-            isSelectionMode: true,
-            onSelectionChange: _onSelectionChange,
-            selectedElement: newSelectedFolder),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Dismiss'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          FilledButton(
-            child: const Text('Okay'),
-            onPressed: () {
-              _updateFolderPath(newSelectedFolder!);
-              addChannelButtonStateWidget?.setState(() {});
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -225,24 +187,6 @@ class _DialogAnalyze extends State<DialogAnalyze>
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: TextField(
-                            enabled:
-                                _state == AnalyzeState.STOPPED ? true : false,
-                            obscureText: false,
-                            controller: inputFolder,
-                            onTap: showOpenFolderDialog,
-                            decoration: InputDecoration(
-                                prefixIcon:
-                                    const Icon(Icons.folder_open_outlined),
-                                border: OutlineInputBorder(),
-                                labelText: 'Input folder',
-                                suffixText: '',
-                                hintText: '/home/user/images/',
-                                helperText:
-                                    'Folder where your images are stored in.'),
-                          )),
                       Wrap(
                           //crossAxisAlignment: CrossAxisAlignment.stretch,
                           //mainAxisAlignment: MainAxisAlignment.start,
