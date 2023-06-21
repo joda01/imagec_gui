@@ -55,11 +55,6 @@ class ScreenAnalyze extends StatelessWidget {
           ),
         );
 
-    Widget expander() {
-      return Expanded(
-          child: Container(alignment: Alignment.bottomCenter, child: footer()));
-    }
-
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
       return ChannelRow();
@@ -129,8 +124,8 @@ class _ChannelRow extends State<ChannelRow>
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
+    return
+       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -165,8 +160,8 @@ class _ChannelRow extends State<ChannelRow>
                 )),
           ),
         ],
-      ),
-    );
+      );
+    
   }
 
   @override
