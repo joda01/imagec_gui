@@ -9,6 +9,10 @@ enum AnalyzeState { STOPPED, STOPPING, STARTING, RUNNING }
 
 TextEditingController inputFolder = new TextEditingController();
 TextEditingController cpus = TextEditingController(text: "1");
+
+TextEditingController PostProcessingScriptController = TextEditingController();
+PostProcessingScript? selectedPostProcessingScript = PostProcessingScript.liner_regression;
+
 TextEditingController pipelinesController = TextEditingController();
 Pipelines? selectedPipeline = Pipelines.count;
 
@@ -35,9 +39,12 @@ class _DialogAnalyze extends State<DialogAnalyze>
   bool get wantKeepAlive => true;
 
   ///
-  /// Channel labels
+  /// Dropdown entries
   final List<DropdownMenuEntry<Pipelines>> pipelinesentries =
       <DropdownMenuEntry<Pipelines>>[];
+
+  final List<DropdownMenuEntry<PostProcessingScript>> PostProcessingScriptEntries =
+      <DropdownMenuEntry<PostProcessingScript>>[];
 
   void _updateProgress(double perImage, double total) {
     setState(() {
@@ -157,6 +164,11 @@ class _DialogAnalyze extends State<DialogAnalyze>
       pipelinesentries
           .add(DropdownMenuEntry<Pipelines>(value: entry, label: entry.label));
     }
+
+    for (final PostProcessingScript entry in PostProcessingScript.values) {
+      PostProcessingScriptEntries.add(
+          DropdownMenuEntry<PostProcessingScript>(value: entry, label: entry.label));
+    }
     updateStatus();
     super.initState();
   }
@@ -166,8 +178,6 @@ class _DialogAnalyze extends State<DialogAnalyze>
     super.dispose();
     stopTimer();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -210,6 +220,26 @@ class _DialogAnalyze extends State<DialogAnalyze>
                                       dropdownMenuEntries: pipelinesentries,
                                       onSelected: (value) =>
                                           selectedPipeline = value,
+                                    ))),
+                            SizedBox(
+                                //width: 350,
+                                child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        20, 10, 20, 10),
+                                    child: DropdownMenu<PostProcessingScript>(
+                                      enabled: _state == AnalyzeState.STOPPED
+                                          ? true
+                                          : false,
+                                      //width: 330,
+                                      initialSelection: selectedPostProcessingScript,
+                                      controller: PostProcessingScriptController,
+                                      leadingIcon:
+                                          const Icon(Icons.stacked_bar_chart_outlined),
+                                      label: const Text('Analytics'),
+                                      helperText: "Add post processing script.",
+                                      dropdownMenuEntries: PostProcessingScriptEntries,
+                                      onSelected: (value) =>
+                                          selectedPostProcessingScript = value,
                                     ))),
                             SizedBox(
                               width: 250,

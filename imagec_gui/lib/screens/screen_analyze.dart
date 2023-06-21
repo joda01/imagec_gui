@@ -5,8 +5,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../channel/channel_common.dart';
-import '../channel/channel_ev.dart';
-import '../channel/channel_nucleus.dart';
+import '../channel/channel_explicite.dart';
 import '../dialogs/dialog_analyze.dart';
 
 DialogAnalyze dialogAnalyze = DialogAnalyze();
@@ -83,9 +82,9 @@ class _ChannelRow extends State<ChannelRow>
   void initState() {
     super.initState();
     actChannels.add(new AddChannelButton(
-      scroll: globalCardControllervertical,
-      parent: this,
-    ));
+        scroll: globalCardControllervertical,
+        parent: this,
+        channelType: ChannelTypeLabels.nucleus));
   }
 
   void _updateFolderPath(String path) {
@@ -185,6 +184,7 @@ class AddChannelButton extends Channel {
     super.key,
     required super.scroll,
     required super.parent,
+    required super.channelType,
   });
 
   final _AddChannelButton settings = new _AddChannelButton();
@@ -254,26 +254,28 @@ class _AddChannelButton extends State<AddChannelButton>
               widget.parent.setState(() {
                 switch (selectedChannelType) {
                   case ChannelTypeLabels.ev:
-                    actChannels.insert(
-                        idx,
-                        ChannelSettingEV(
-                          key: UniqueKey(),
-                          scroll: globalCardControllervertical,
-                          parent: widget.parent,
-                        ));
                     break;
                   case ChannelTypeLabels.background:
                     break;
                   case ChannelTypeLabels.nucleus:
                     actChannels.insert(
                         idx,
-                        ChannelSettingNucleus(
+                        ChannelSettingExplicite(
                           key: UniqueKey(),
                           scroll: globalCardControllervertical,
                           parent: widget.parent,
+                          channelType: ChannelTypeLabels.nucleus,
                         ));
                     break;
                   case ChannelTypeLabels.cell:
+                    actChannels.insert(
+                        idx,
+                        ChannelSettingExplicite(
+                          key: UniqueKey(),
+                          scroll: globalCardControllervertical,
+                          parent: widget.parent,
+                          channelType: ChannelTypeLabels.cell,
+                        ));
                     break;
 
                   default:

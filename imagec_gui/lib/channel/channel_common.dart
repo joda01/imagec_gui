@@ -22,15 +22,32 @@ enum Pipelines {
 }
 
 ///
+/// Export gadgets
+enum PostProcessingScript {
+  liner_regression(
+      'Linear regression (R)', 'POST_PROCESSING_SCRIPT_LINER_REGRESSION'),
+  histogram('Histogram (Python)', 'POST_PROCESSING_SCRIPT_HISTOGRAM'),
+  graphical_view(
+    'Graphical comparison (Python)',
+    'POST_PROCESSING_SCRIPT_GRAPHICAL_COMPARISON',
+  );
+
+  const PostProcessingScript(this.label, this.value);
+  final String label;
+  final String value;
+}
+
+///
 /// Enum values
 enum ChannelTypeLabels {
   nucleus(
     'Nucleus (alpha)',
     'NUCLEUS',
   ),
-  cell('Cell (NA)', 'CELL'),
+  cell('Cell (alpha)', 'CELL'),
   ev('EV (NA)', 'EV'),
-  background('Background (NA)', 'BACKGROUND');
+  background('Background (NA)', 'BACKGROUND'),
+  tetraspeck_bead('Tetraspeck Bead (NA)', 'TETRASPECK_BEAD');
 
   const ChannelTypeLabels(this.label, this.value);
   final String label;
@@ -99,12 +116,40 @@ class ScrollSyncer {
 }
 
 abstract class Channel extends StatefulWidget {
-  Channel({super.key, required this.scroll, required this.parent});
+  Channel(
+      {super.key,
+      required this.scroll,
+      required this.parent,
+      required this.channelType});
 
   final ScrollSyncer scroll;
   final State parent;
+  final ChannelTypeLabels channelType;
 
   Object toJsonObject();
+
+  @protected
+  Object jsonObjectBuilder(int index) {
+    final channelSettings = {
+      "index": index,
+      "type": channelType.value,
+      "label": "CY5",
+      "thresholds": {
+        "threshold_algorithm": "LI",
+        "threshold_min": 65536,
+        "threshold_max": 123,
+      },
+      "ai_settings": {"model_name": "nucleus_detection_ex_vivo_v1.onnx"},
+      "min_particle_size": 0.25,
+      "max_particle_size": 0.23,
+      "min_circularity": 0.2,
+      "snap_area_size": 2,
+      "margin_crop": 1,
+      "zprojection": "MAX",
+      "detection_mode": "AI"
+    };
+    return channelSettings;
+  }
 }
 
 ///
@@ -113,24 +158,6 @@ class CheckForNonEmptyTextField extends TextInputFormatter {
   final RegExp regex;
 
   CheckForNonEmptyTextField({required this.regex});
-
-  Object toJsonObject() {
-    final channelSettings = {
-      "index": [1, 2],
-      "type": "EV",
-      "threshold_algorithm": "LI",
-      "label": "CY5",
-      "threshold_min": 65536,
-      "threshold_max": 123,
-      "min_particle_size": 0.25,
-      "max_particle_size": 0.23,
-      "min_circularity": 0.2,
-      "snap_area_size": 2,
-      "margin_crop": 1,
-      "zprojection": "MAX"
-    };
-    return channelSettings;
-  }
 
   @override
   TextEditingValue formatEditUpdate(
@@ -251,15 +278,23 @@ class PreviewButton extends StatelessWidget {
 ///
 /// Channel index selector
 class ChannelSelector extends StatefulWidget {
-  const ChannelSelector({super.key});
+  ChannelSelector({super.key});
 
   @override
   State<ChannelSelector> createState() => _ChannelSelectorState();
+
+  Set<ChannelIndex> filters = <ChannelIndex>{};
+
+  int getSelectedChannel() {
+    if (filters.length > 0) {
+      return filters.first.value;
+    } else {
+      return 0;
+    }
+  }
 }
 
 class _ChannelSelectorState extends State<ChannelSelector> {
-  Set<ChannelIndex> filters = <ChannelIndex>{};
-
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
@@ -276,16 +311,16 @@ class _ChannelSelectorState extends State<ChannelSelector> {
             children: ChannelIndex.values.map((ChannelIndex exercise) {
               return FilterChip(
                 label: Text(exercise.label),
-                selected: filters.contains(exercise),
+                selected: widget.filters.contains(exercise),
                 //selectedColor: Theme.of(context).colorScheme.onSurface,
                 showCheckmark: false,
                 onSelected: (bool selected) {
                   setState(() {
-                    filters.clear(); // Allow only one selection
+                    widget.filters.clear(); // Allow only one selection
                     if (selected) {
-                      filters.add(exercise);
+                      widget.filters.add(exercise);
                     } else {
-                      filters.remove(exercise);
+                      widget.filters.remove(exercise);
                     }
                   });
                 },
@@ -297,4 +332,3 @@ class _ChannelSelectorState extends State<ChannelSelector> {
     );
   }
 }
-

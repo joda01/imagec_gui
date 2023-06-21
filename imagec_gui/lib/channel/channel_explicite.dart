@@ -3,10 +3,14 @@ import 'package:flutter/services.dart';
 import 'channel_common.dart';
 
 enum ChannelLabels {
-  cy3('Brightfield', 'BRIGHTFIELD'),
-  cy5(
-    'Darkfield',
-    'DARKFIELD',
+  none('none', 'NONE'),
+  cy3('CY3', 'CY3'),
+  cy5('CY5', 'CY5'),
+  cy7('CY7', 'CY7'),
+  dapi('DAPI', 'DAPI'),
+  gfp(
+    'GFP',
+    'GFP',
   );
 
   const ChannelLabels(this.label, this.value);
@@ -30,54 +34,39 @@ enum AIModelNucleus {
   final String value;
 }
 
-class ChannelSettingNucleus extends Channel {
-  ChannelSettingNucleus(
-      {super.key, required super.scroll, required super.parent});
+class ChannelSettingExplicite extends Channel {
+  ChannelSettingExplicite(
+      {super.key,
+      required super.scroll,
+      required super.parent,
+      required super.channelType});
 
-  final _ChannelSettingNucleus settings = _ChannelSettingNucleus();
+  final _ChannelSettingExplicite settings = _ChannelSettingExplicite();
 
   @override
-  State<ChannelSettingNucleus> createState() => settings;
+  State<ChannelSettingExplicite> createState() => settings;
 
   @override
   Object toJsonObject() {
-    return settings.toJsonObject();
+    return super.jsonObjectBuilder(settings.chSelector.getSelectedChannel());
   }
 }
 
 ///
 /// Title card
-class _ChannelSettingNucleus extends State<ChannelSettingNucleus> {
+class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
   bool useAI = false;
-
-  Object toJsonObject() {
-    final channelSettings = {
-      "index": [1, 2],
-      "type": "EV",
-      "label": "CY5",
-      "thresholds": {
-        "threshold_algorithm": "LI",
-        "threshold_min": 65536,
-        "threshold_max": 123,
-      },
-      "ai_settings": {
-        "model_name": "nucleus_detection_ex_vivo_v1.onnx"
-      },
-      "min_particle_size": 0.25,
-      "max_particle_size": 0.23,
-      "min_circularity": 0.2,
-      "snap_area_size": 2,
-      "margin_crop": 1,
-      "zprojection": "MAX",
-      "detection_mode": "AI"
-    };
-    return channelSettings;
-  }
 
   @override
   void initState() {
     super.initState();
   }
+
+  final ChannelSelector chSelector = ChannelSelector();
+  final TextEditingController chLabelsController = TextEditingController();
+  final TextEditingController thresholdMethodController =
+      TextEditingController();
+  final TextEditingController aiModelController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +76,6 @@ class _ChannelSettingNucleus extends State<ChannelSettingNucleus> {
 
     ///
     /// Channel labels
-    final TextEditingController chLabelsController = TextEditingController();
     final List<DropdownMenuEntry<ChannelLabels>> channelLabelsEntries =
         <DropdownMenuEntry<ChannelLabels>>[];
     for (final ChannelLabels entry in ChannelLabels.values) {
@@ -97,8 +85,6 @@ class _ChannelSettingNucleus extends State<ChannelSettingNucleus> {
 
     ///
     /// Thresholds
-    final TextEditingController thresholdMethodController =
-        TextEditingController();
     final List<DropdownMenuEntry<ThresholdMethod>> thresholdMethodEntries =
         <DropdownMenuEntry<ThresholdMethod>>[];
     for (final ThresholdMethod entry in ThresholdMethod.values) {
@@ -108,7 +94,6 @@ class _ChannelSettingNucleus extends State<ChannelSettingNucleus> {
 
     ///
     /// AI Model
-    final TextEditingController aiModelController = TextEditingController();
     final List<DropdownMenuEntry<AIModelNucleus>> aiModelEntries =
         <DropdownMenuEntry<AIModelNucleus>>[];
     for (final AIModelNucleus entry in AIModelNucleus.values) {
@@ -153,13 +138,13 @@ class _ChannelSettingNucleus extends State<ChannelSettingNucleus> {
                     Padding(
                         padding: const EdgeInsets.all(10),
                         child: Text(
-                          "Nucleus",
+                          widget.channelType.label,
                           style: textTheme.titleLarge,
                         )),
 
                     Padding(
                         padding: const EdgeInsets.all(10),
-                        child: SizedBox(width: 220, child: ChannelSelector())),
+                        child: SizedBox(width: 220, child: chSelector)),
 
                     //
                     // Channel labels
