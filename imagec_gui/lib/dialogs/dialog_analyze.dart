@@ -11,13 +11,11 @@ TextEditingController inputFolder = new TextEditingController();
 TextEditingController cpus = TextEditingController(text: "1");
 
 TextEditingController PostProcessingScriptController = TextEditingController();
-PostProcessingScript? selectedPostProcessingScript = PostProcessingScript.liner_regression;
+PostProcessingScript? selectedPostProcessingScript =
+    PostProcessingScript.liner_regression;
 
 TextEditingController pipelinesController = TextEditingController();
 Pipelines? selectedPipeline = Pipelines.count;
-
-String selectedFolder = "";
-String newSelectedFolder = "";
 
 class DialogAnalyze extends StatefulWidget {
   @override
@@ -43,8 +41,8 @@ class _DialogAnalyze extends State<DialogAnalyze>
   final List<DropdownMenuEntry<Pipelines>> pipelinesentries =
       <DropdownMenuEntry<Pipelines>>[];
 
-  final List<DropdownMenuEntry<PostProcessingScript>> PostProcessingScriptEntries =
-      <DropdownMenuEntry<PostProcessingScript>>[];
+  final List<DropdownMenuEntry<PostProcessingScript>>
+      PostProcessingScriptEntries = <DropdownMenuEntry<PostProcessingScript>>[];
 
   void _updateProgress(double perImage, double total) {
     setState(() {
@@ -166,8 +164,8 @@ class _DialogAnalyze extends State<DialogAnalyze>
     }
 
     for (final PostProcessingScript entry in PostProcessingScript.values) {
-      PostProcessingScriptEntries.add(
-          DropdownMenuEntry<PostProcessingScript>(value: entry, label: entry.label));
+      PostProcessingScriptEntries.add(DropdownMenuEntry<PostProcessingScript>(
+          value: entry, label: entry.label));
     }
     updateStatus();
     super.initState();
@@ -231,13 +229,16 @@ class _DialogAnalyze extends State<DialogAnalyze>
                                           ? true
                                           : false,
                                       //width: 330,
-                                      initialSelection: selectedPostProcessingScript,
-                                      controller: PostProcessingScriptController,
-                                      leadingIcon:
-                                          const Icon(Icons.stacked_bar_chart_outlined),
+                                      initialSelection:
+                                          selectedPostProcessingScript,
+                                      controller:
+                                          PostProcessingScriptController,
+                                      leadingIcon: const Icon(
+                                          Icons.stacked_bar_chart_outlined),
                                       label: const Text('Analytics'),
                                       helperText: "Add post processing script.",
-                                      dropdownMenuEntries: PostProcessingScriptEntries,
+                                      dropdownMenuEntries:
+                                          PostProcessingScriptEntries,
                                       onSelected: (value) =>
                                           selectedPostProcessingScript = value,
                                     ))),
@@ -345,12 +346,12 @@ class _DialogAnalyze extends State<DialogAnalyze>
 ///
 ///
 class OpenFolderDialog extends StatefulWidget {
-  OpenFolderDialog({
-    super.key,
-    required this.selectedElement,
-    required this.isSelectionMode,
-    required this.onSelectionChange,
-  });
+  OpenFolderDialog(
+      {super.key,
+      required this.selectedElement,
+      required this.isSelectionMode,
+      required this.onSelectionChange,
+      required this.fileExtensions});
 
   final bool isSelectionMode;
   String activeFolder = "";
@@ -358,9 +359,11 @@ class OpenFolderDialog extends StatefulWidget {
   final List<bool> selectedList = [false, false];
   final List<(String, String)> directoriesEntries = [];
   final Function(String)? onSelectionChange;
+  final List<String> fileExtensions;
 
   Future<void> setListParameters() async {
-    final (directories, homePath) = await listFolders(activeFolder);
+    final (directories, files, homePath) =
+        await listFolders(activeFolder, fileExtensions);
     directoriesEntries.clear();
     selectedList.clear();
 
@@ -384,6 +387,16 @@ class OpenFolderDialog extends StatefulWidget {
       String folderName = entry;
       folderName = entry.substring(entry.lastIndexOf("/") + 1);
 
+      // Do not add hidden folder to the list
+      if (!folderName.startsWith(".")) {
+        directoriesEntries.add((folderName, entry));
+        selectedList.add(false);
+      }
+    }
+
+    for (final String entry in files) {
+      String folderName = entry;
+      folderName = entry.substring(entry.lastIndexOf("/") + 1);
       // Do not add hidden folder to the list
       if (!folderName.startsWith(".")) {
         directoriesEntries.add((folderName, entry));

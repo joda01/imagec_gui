@@ -7,9 +7,16 @@ import 'package:flutter/material.dart';
 import '../channel/channel_common.dart';
 import '../channel/channel_explicite.dart';
 import '../dialogs/dialog_analyze.dart';
+import '../logic/backend_communication.dart';
 
 DialogAnalyze dialogAnalyze = DialogAnalyze();
 const Widget divider = SizedBox(height: 10);
+
+// Folder selection
+String newSelectedFolder = "";
+
+// File opener
+String newSelectedJsonSettingsFile = "";
 
 // If screen content width is greater or equal to this value, the light and dark
 // color schemes will be displayed in a column. Otherwise, they will
@@ -103,7 +110,8 @@ class _ChannelRow extends State<ChannelRow>
         content: OpenFolderDialog(
             isSelectionMode: true,
             onSelectionChange: _onSelectionChange,
-            selectedElement: newSelectedFolder),
+            selectedElement: newSelectedFolder,
+            fileExtensions: []),
         actions: <Widget>[
           TextButton(
             child: const Text('Dismiss'),
@@ -124,44 +132,42 @@ class _ChannelRow extends State<ChannelRow>
 
   @override
   Widget build(BuildContext context) {
-    return
-       Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Scrollbar(
-              thickness: 10,
-              thumbVisibility: true,
-              interactive: true,
-              controller: controllerHorizontal,
-              child: SingleChildScrollView(
-                  controller: controllerHorizontal,
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                      //    mainAxisAlignment: MainAxisAlignment.,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: actChannels)),
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Scrollbar(
+            thickness: 10,
+            thumbVisibility: true,
+            interactive: true,
+            controller: controllerHorizontal,
+            child: SingleChildScrollView(
+                controller: controllerHorizontal,
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                    //    mainAxisAlignment: MainAxisAlignment.,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: actChannels)),
           ),
-          SizedBox(
-            child: Padding(
-                padding: const EdgeInsets.fromLTRB(5, 20, 5, 5),
-                child: TextField(
-                  obscureText: false,
-                  controller: inputFolder,
-                  onTap: showOpenFolderDialog,
-                  decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.folder_open_outlined),
-                      border: OutlineInputBorder(),
-                      labelText: 'Folder where your images are stored in.',
-                      suffixText: '',
-                      hintText: '/home/user/images/'),
-                )),
-          ),
-        ],
-      );
-    
+        ),
+        SizedBox(
+          child: Padding(
+              padding: const EdgeInsets.fromLTRB(5, 20, 5, 5),
+              child: TextField(
+                obscureText: false,
+                controller: inputFolder,
+                onTap: showOpenFolderDialog,
+                decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.folder_open_outlined),
+                    border: OutlineInputBorder(),
+                    labelText: 'Folder where your images are stored in.',
+                    suffixText: '',
+                    hintText: '/home/user/images/'),
+              )),
+        ),
+      ],
+    );
   }
 
   @override
@@ -297,6 +303,48 @@ class _AddChannelButton extends State<AddChannelButton>
         });
   }
 
+  void _onFileSelectionChanged(String newSettingsFile) {
+    newSelectedJsonSettingsFile = newSettingsFile;
+  }
+
+  void _updateSelectedJsonSettingsFile(String path) async {
+    final newJsonFilePath = path;
+    try {
+      final settings = await getSettingsConfig(newJsonFilePath);
+    } catch (e) {}
+
+    setState(() {});
+  }
+
+  void showOpenFileDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select json file'),
+        content: OpenFolderDialog(
+          isSelectionMode: true,
+          onSelectionChange: _onFileSelectionChanged,
+          selectedElement: newSelectedJsonSettingsFile,
+          fileExtensions: [".json"],
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Dismiss'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          FilledButton(
+            child: const Text('Okay'),
+            onPressed: () {
+              _updateSelectedJsonSettingsFile(newSelectedJsonSettingsFile!);
+              addChannelButtonStateWidget?.setState(() {});
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context)
         .textTheme
@@ -327,11 +375,25 @@ class _AddChannelButton extends State<AddChannelButton>
                           child: const Icon(Icons.add),
                         ),
                       )),
+
+                  Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: SizedBox(
+                        width: 60,
+                        child: FloatingActionButton(
+                          onPressed: () {
+                            showOpenFileDialog();
+                          },
+                          tooltip: "Open settings",
+                          child: const Icon(Icons.folder_open_outlined),
+                        ),
+                      )),
                   Visibility(
                       visible: actChannels.length <= 1,
                       child: Padding(
                           padding: const EdgeInsets.all(10),
-                          child: Text("Click the + button to add a channel.",
+                          child: Text(
+                              "Click the + button to add a channel\nor the folder to open existing settings.",
                               style: textTheme.bodyLarge))),
 
                   //
