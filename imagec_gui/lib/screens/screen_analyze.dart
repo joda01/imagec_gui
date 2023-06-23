@@ -11,6 +11,7 @@ import '../logic/backend_communication.dart';
 
 DialogAnalyze dialogAnalyze = DialogAnalyze();
 const Widget divider = SizedBox(height: 10);
+ChannelRow channelRow = ChannelRow();
 
 // Folder selection
 String newSelectedFolder = "";
@@ -64,16 +65,21 @@ class ScreenAnalyze extends StatelessWidget {
 
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
-      return ChannelRow();
+      return channelRow;
     });
   }
 }
 
 class ChannelRow extends StatefulWidget {
-  const ChannelRow({super.key});
+  ChannelRow({super.key});
 
+  _ChannelRow rowStateful = _ChannelRow();
   @override
-  State<ChannelRow> createState() => _ChannelRow();
+  State<ChannelRow> createState() => rowStateful;
+
+  void loadChannelSettings(dynamic settings) {
+    rowStateful.loadChannelSettings(settings);
+  }
 }
 
 class _ChannelRow extends State<ChannelRow>
@@ -97,6 +103,52 @@ class _ChannelRow extends State<ChannelRow>
 
   void _onSelectionChange(String newFolder) {
     newSelectedFolder = newFolder;
+  }
+
+  ///
+  /// Load channel settings from json file
+  ///
+  void loadChannelSettings(dynamic settings) {
+    actChannels.clear();
+
+actChannels.add(AddChannelButton(
+        scroll: globalCardControllervertical,
+        parent: this,
+        channelType: ChannelTypeLabels.nucleus));
+
+    //print(settings);
+    final channels = settings["channels"] as List<dynamic>;
+    for (final dynamic channel in channels) {
+    int idx = actChannels.length - 1;
+      var channelType = ChannelTypeLabels.nucleus;
+      switch (channel["type"] as String) {
+        case "EV":
+          channelType = ChannelTypeLabels.ev;
+          break;
+        case "BACKGROUND":
+          channelType = ChannelTypeLabels.background;
+          break;
+        case "NUCLEUS":
+          channelType = ChannelTypeLabels.nucleus;
+          break;
+        case "CELL":
+          channelType = ChannelTypeLabels.cell;
+          break;
+
+        default:
+          break;
+      }
+      var chSet = ChannelSettingExplicite(
+        key: UniqueKey(),
+        scroll: globalCardControllervertical,
+        parent: this,
+        channelType: channelType,
+      );
+
+      chSet.loadChannelSettings(channel);
+      actChannels.insert(idx, chSet);
+    }
+    setState(() {});
   }
 
   ///
@@ -216,7 +268,7 @@ class _AddChannelButton extends State<AddChannelButton>
   ///
   /// \brief Open add channel dialog
   ///
-  void openDialog(BuildContext context) {
+  void openAddChannelDialog(BuildContext context) {
     ///
     /// Channel labels
     final TextEditingController channelTypesController =
@@ -311,6 +363,7 @@ class _AddChannelButton extends State<AddChannelButton>
     final newJsonFilePath = path;
     try {
       final settings = await getSettingsConfig(newJsonFilePath);
+      channelRow.loadChannelSettings(settings);
     } catch (e) {}
 
     setState(() {});
@@ -369,7 +422,7 @@ class _AddChannelButton extends State<AddChannelButton>
                         width: 60,
                         child: FloatingActionButton(
                           onPressed: () {
-                            openDialog(context);
+                            openAddChannelDialog(context);
                           },
                           tooltip: "Add channel",
                           child: const Icon(Icons.add),

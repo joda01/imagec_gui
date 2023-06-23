@@ -37,6 +37,48 @@ enum PostProcessingScript {
   final String value;
 }
 
+enum ChannelLabels {
+  none('none', 'NONE'),
+  cy3('CY3', 'CY3'),
+  cy5('CY5', 'CY5'),
+  cy7('CY7', 'CY7'),
+  dapi('DAPI', 'DAPI'),
+  gfp(
+    'GFP',
+    'GFP',
+  );
+
+  const ChannelLabels(this.label, this.value);
+  final String label;
+  final String value;
+
+  static stringToEnum(String str) {
+    for (final label in ChannelLabels.values) {
+      if (label.value == str) {
+        return label;
+      }
+    }
+    return ChannelLabels.none;
+  }
+}
+
+enum AIModel {
+  common('Common v1', 'AI_MODEL_COMMON_V1');
+
+  const AIModel(this.label, this.value);
+  final String label;
+  final String value;
+
+  static stringToEnum(String str) {
+    for (final label in AIModel.values) {
+      if (label.value == str) {
+        return label;
+      }
+    }
+    return AIModel.common;
+  }
+}
+
 ///
 /// Enum values
 enum ChannelTypeLabels {
@@ -52,6 +94,15 @@ enum ChannelTypeLabels {
   const ChannelTypeLabels(this.label, this.value);
   final String label;
   final String value;
+
+  static ChannelTypeLabels stringToEnum(String inString) {
+    for (final enumI in ChannelTypeLabels.values) {
+      if (enumI.value == inString) {
+        return enumI;
+      }
+    }
+    return ChannelTypeLabels.nucleus;
+  }
 }
 
 enum ThresholdMethod {
@@ -69,6 +120,15 @@ enum ThresholdMethod {
   const ThresholdMethod(this.label, this.value);
   final String label;
   final String value;
+
+  static ThresholdMethod stringToEnum(String inString) {
+    for (final enumI in ThresholdMethod.values) {
+      if (enumI.value == inString) {
+        return enumI;
+      }
+    }
+    return ThresholdMethod.manual;
+  }
 }
 
 enum ChannelIndex {
@@ -94,6 +154,15 @@ enum ChannelIndex {
   const ChannelIndex(this.label, this.value);
   final String label;
   final int value;
+
+  static ChannelIndex toIndex(int i) {
+    for (final channel in ChannelIndex.values) {
+      if (channel.value == i) {
+        return channel;
+      }
+    }
+    return ChannelIndex.ch01;
+  }
 }
 
 class ScrollSyncer {
@@ -126,27 +195,57 @@ abstract class Channel extends StatefulWidget {
   final State parent;
   final ChannelTypeLabels channelType;
 
+
+  // Taken settings
+  final ChannelSelector chSelector = ChannelSelector();
+  ChannelLabels selectedChannelLabel = ChannelLabels.cy3;
+  AIModel selectedAIModel = AIModel.common;
+  bool useAI = false;
+  ThresholdMethod selectedThresholdMethod = ThresholdMethod.manual;
+  TextEditingController selectedMinThreshold = TextEditingController();
+  TextEditingController selectedMinProbability = TextEditingController()
+    ..text = "80";
+  TextEditingController selectedMinCircularity = TextEditingController()
+    ..text = "80";
+  TextEditingController selectedSnapArea = TextEditingController()..text = "0";
+  TextEditingController selectedMarginCrop = TextEditingController()
+    ..text = "0";
+  TextEditingController selectedParticleSizeRange = TextEditingController()
+    ..text = "5-999999";
+
   Object toJsonObject();
 
+  (double,double) getMinMaxParticleSize(){
+    final min = double.parse(selectedParticleSizeRange.text.split("-")[0]);
+    final max = double.parse(selectedParticleSizeRange.text.split("-")[1]);
+    return (min,max);
+  }
+
+
   @protected
-  Object jsonObjectBuilder(int index) {
+  Object jsonObjectBuilder() {
+
+    final (minParticle, maxParticle) = getMinMaxParticleSize();
     final channelSettings = {
-      "index": index,
+      "index": chSelector.getSelectedChannel(),
       "type": channelType.value,
-      "label": "CY5",
+      "label": selectedChannelLabel.value,
+      "detection_mode": true == useAI ? "AI" : "THRESHOLD",
       "thresholds": {
-        "threshold_algorithm": "LI",
-        "threshold_min": 65536,
-        "threshold_max": 123,
+        "threshold_algorithm": selectedThresholdMethod.value,
+        "threshold_min":double.parse(selectedMinThreshold.text)/100,
+        "threshold_max": 1,
       },
-      "ai_settings": {"model_name": "nucleus_detection_ex_vivo_v1.onnx"},
-      "min_particle_size": 0.25,
-      "max_particle_size": 0.23,
-      "min_circularity": 0.2,
-      "snap_area_size": 2,
-      "margin_crop": 1,
+      "ai_settings": {
+        "model_name": selectedAIModel.value,
+        "probability_min": double.parse(selectedMinProbability.text)/100
+      },
+      "min_particle_size": minParticle,
+      "max_particle_size": maxParticle,
+      "min_circularity": double.parse(selectedMinCircularity.text)/100,
+      "snap_area_size": double.parse(selectedSnapArea.text),
+      "margin_crop": double.parse(selectedMarginCrop.text),
       "zprojection": "MAX",
-      "detection_mode": "AI"
     };
     return channelSettings;
   }
@@ -291,6 +390,11 @@ class ChannelSelector extends StatefulWidget {
     } else {
       return 0;
     }
+  }
+
+  void setSelectedChannel(ChannelIndex ch) {
+    filters.clear();
+    filters.add(ch);
   }
 }
 
