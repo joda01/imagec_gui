@@ -4,12 +4,22 @@
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:namer_app/screens/screen_home.dart';
 import '../channel/channel_common.dart';
 import '../channel/channel_explicite.dart';
 import '../dialogs/dialog_analyze.dart';
+import '../logic/analyzer_settings.dart';
+import '../logic/backend_communication.dart';
 
 DialogAnalyze dialogAnalyze = DialogAnalyze();
+ChannelRow channelRow = ChannelRow();
 const Widget divider = SizedBox(height: 10);
+
+// Folder selection
+String newSelectedFolder = "";
+
+// File opener
+String newSelectedJsonSettingsFile = "";
 
 // If screen content width is greater or equal to this value, the light and dark
 // color schemes will be displayed in a column. Otherwise, they will
@@ -21,65 +31,46 @@ class ScreenAnalyze extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context)
-        .textTheme
-        .apply(displayColor: Theme.of(context).colorScheme.onSurface);
-
-    Widget title() {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        child: Text("Welcome", style: textTheme.displayLarge!),
-      );
-    }
-
-    Widget footer() => RichText(
-          textAlign: TextAlign.center,
-          text: TextSpan(
-            style: Theme.of(context).textTheme.bodySmall,
-            children: [
-              const TextSpan(
-                  text:
-                      'Copyright 2023 J.D | many thanks to Melanie Schuerz and Anna Mueller | '),
-              TextSpan(
-                text: 'imagec.org',
-                style: const TextStyle(decoration: TextDecoration.underline),
-                recognizer: TapGestureRecognizer()
-                  ..onTap = () async {
-                    final url = Uri.parse(
-                      'https://www.imagec.org',
-                    );
-                  },
-              ),
-              const TextSpan(text: ''),
-            ],
-          ),
-        );
-
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
-      return ChannelRow();
+      return channelRow;
     });
   }
 }
 
 class ChannelRow extends StatefulWidget {
-  const ChannelRow({super.key});
+  ChannelRow({super.key});
 
+  _ChannelRow rowStateful = _ChannelRow();
   @override
-  State<ChannelRow> createState() => _ChannelRow();
+  State<ChannelRow> createState() => rowStateful;
+
+  void loadChannelSettings(dynamic settings) {
+    rowStateful.loadChannelSettings(settings);
+  }
+
+  void clearAllChannels() {
+    rowStateful.clearAllChannels();
+  }
 }
 
 class _ChannelRow extends State<ChannelRow>
     with AutomaticKeepAliveClientMixin<ChannelRow> {
   final ScrollController controllerHorizontal = ScrollController();
 
-  @override
-  void initState() {
-    super.initState();
-    actChannels.add(new AddChannelButton(
+  void addChannelButton() {
+    actChannels.add(AddChannelButton(
         scroll: globalCardControllervertical,
         parent: this,
         channelType: ChannelTypeLabels.nucleus));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (actChannels.isEmpty) {
+      addChannelButton();
+    }
   }
 
   void _updateFolderPath(String path) {
@@ -90,6 +81,68 @@ class _ChannelRow extends State<ChannelRow>
 
   void _onSelectionChange(String newFolder) {
     newSelectedFolder = newFolder;
+  }
+
+  void clearAllChannels() {
+    actChannels.clear();
+    try {
+      setState(() {
+        newSelectedFolder = "";
+        inputFolder.text = "";
+      });
+    } catch (e) {}
+    addChannelButton();
+  }
+
+  ///
+  /// Load channel settings from json file
+  ///
+  void loadChannelSettings(dynamic settings) {
+    // If empty add open buttons
+    actChannels.clear();
+
+    //print(settings);
+    final channels = settings["channels"] as List<dynamic>;
+    for (final dynamic channel in channels) {
+      int idx = actChannels.length;
+
+      var channelType = ChannelTypeLabels.nucleus;
+      switch (channel["type"] as String) {
+        case "EV":
+          channelType = ChannelTypeLabels.ev;
+          break;
+        case "BACKGROUND":
+          channelType = ChannelTypeLabels.background;
+          break;
+        case "NUCLEUS":
+          channelType = ChannelTypeLabels.nucleus;
+          break;
+        case "CELL":
+          channelType = ChannelTypeLabels.cell;
+          break;
+
+        default:
+          break;
+      }
+      var chSet = ChannelSettingExplicite(
+        key: UniqueKey(),
+        scroll: globalCardControllervertical,
+        parent: this,
+        channelType: channelType,
+      );
+
+      chSet.loadChannelSettings(channel);
+      actChannels.insert(idx, chSet);
+    }
+
+    newSelectedFolder = settings["input_folder"] as String;
+    inputFolder.text = newSelectedFolder;
+
+    try {
+      setState(() {});
+    } catch (e) {}
+
+    addChannelButton();
   }
 
   ///
@@ -103,7 +156,8 @@ class _ChannelRow extends State<ChannelRow>
         content: OpenFolderDialog(
             isSelectionMode: true,
             onSelectionChange: _onSelectionChange,
-            selectedElement: newSelectedFolder),
+            selectedElement: newSelectedFolder,
+            fileExtensions: []),
         actions: <Widget>[
           TextButton(
             child: const Text('Dismiss'),
@@ -124,44 +178,42 @@ class _ChannelRow extends State<ChannelRow>
 
   @override
   Widget build(BuildContext context) {
-    return
-       Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Scrollbar(
-              thickness: 10,
-              thumbVisibility: true,
-              interactive: true,
-              controller: controllerHorizontal,
-              child: SingleChildScrollView(
-                  controller: controllerHorizontal,
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                      //    mainAxisAlignment: MainAxisAlignment.,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: actChannels)),
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Scrollbar(
+            thickness: 10,
+            thumbVisibility: true,
+            interactive: true,
+            controller: controllerHorizontal,
+            child: SingleChildScrollView(
+                controller: controllerHorizontal,
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                    //    mainAxisAlignment: MainAxisAlignment.,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: actChannels)),
           ),
-          SizedBox(
-            child: Padding(
-                padding: const EdgeInsets.fromLTRB(5, 20, 5, 5),
-                child: TextField(
-                  obscureText: false,
-                  controller: inputFolder,
-                  onTap: showOpenFolderDialog,
-                  decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.folder_open_outlined),
-                      border: OutlineInputBorder(),
-                      labelText: 'Folder where your images are stored in.',
-                      suffixText: '',
-                      hintText: '/home/user/images/'),
-                )),
-          ),
-        ],
-      );
-    
+        ),
+        SizedBox(
+          child: Padding(
+              padding: const EdgeInsets.fromLTRB(5, 20, 5, 5),
+              child: TextField(
+                obscureText: false,
+                controller: inputFolder,
+                onTap: showOpenFolderDialog,
+                decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.folder_open_outlined),
+                    border: OutlineInputBorder(),
+                    labelText: 'Folder where your images are stored in.',
+                    suffixText: '',
+                    hintText: '/home/user/images/'),
+              )),
+        ),
+      ],
+    );
   }
 
   @override
@@ -210,7 +262,7 @@ class _AddChannelButton extends State<AddChannelButton>
   ///
   /// \brief Open add channel dialog
   ///
-  void openDialog(BuildContext context) {
+  void openAddChannelDialog(BuildContext context) {
     ///
     /// Channel labels
     final TextEditingController channelTypesController =
@@ -297,6 +349,49 @@ class _AddChannelButton extends State<AddChannelButton>
         });
   }
 
+  void _onFileSelectionChanged(String newSettingsFile) {
+    newSelectedJsonSettingsFile = newSettingsFile;
+  }
+
+  void _updateSelectedJsonSettingsFile(String path) async {
+    final newJsonFilePath = path;
+    try {
+      final settings = await getSettingsConfig(newJsonFilePath);
+      loadFromAnalyzeSettings(settings);
+    } catch (e) {}
+
+    setState(() {});
+  }
+
+  void showOpenFileDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select json file'),
+        content: OpenFolderDialog(
+          isSelectionMode: true,
+          onSelectionChange: _onFileSelectionChanged,
+          selectedElement: newSelectedJsonSettingsFile,
+          fileExtensions: [".json"],
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Dismiss'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          FilledButton(
+            child: const Text('Okay'),
+            onPressed: () {
+              _updateSelectedJsonSettingsFile(newSelectedJsonSettingsFile!);
+              addChannelButtonStateWidget?.setState(() {});
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context)
         .textTheme
@@ -321,19 +416,46 @@ class _AddChannelButton extends State<AddChannelButton>
                         width: 60,
                         child: FloatingActionButton(
                           onPressed: () {
-                            openDialog(context);
+                            openAddChannelDialog(context);
                           },
                           tooltip: "Add channel",
                           child: const Icon(Icons.add),
+                        ),
+                      )),
+
+                  Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: SizedBox(
+                        width: 60,
+                        child: FloatingActionButton(
+                          onPressed: () {
+                            showOpenFileDialog();
+                          },
+                          tooltip: "Open settings",
+                          child: const Icon(Icons.folder_open_outlined),
                         ),
                       )),
                   Visibility(
                       visible: actChannels.length <= 1,
                       child: Padding(
                           padding: const EdgeInsets.all(10),
-                          child: Text("Click the + button to add a channel.",
+                          child: Text(
+                              "Click the + button to add a channel\nor the folder to open existing settings.",
                               style: textTheme.bodyLarge))),
-
+                  Visibility(
+                      visible: actChannels.length > 1,
+                      child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: SizedBox(
+                            width: 60,
+                            child: FloatingActionButton(
+                              onPressed: () {
+                                storeSettingsToLocalFile();
+                              },
+                              tooltip: "Save settings",
+                              child: const Icon(Icons.save_as_outlined),
+                            ),
+                          ))),
                   //
                   // Start analyzes button
                   //

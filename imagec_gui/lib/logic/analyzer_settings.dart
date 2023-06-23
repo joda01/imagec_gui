@@ -1,71 +1,15 @@
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:html' as html;
 
 import '../channel/channel_common.dart';
+import '../dialogs/dialog_analyze.dart';
+import '../screens/screen_analyze.dart';
+import '../screens/screen_home.dart';
 
-/*
-{
-    "pipeline": "NUCLEUS_COUNT",
-    "channels": [
-        {
-            "index": [
-                1,
-                2
-            ],
-            "type": "EV",
-            "threshold_algorithm": "LI",
-            "label": "CY5",
-            "threshold_min": 65536,
-            "threshold_max": 123,
-            "min_particle_size": 0.25,
-            "max_particle_size": 0.23,
-            "min_circularity": 0.2,
-            "snap_area_size": 2,
-            "margin_crop": 1,
-            "zprojection": "MAX"
-        },
-        {
-            "index": [
-                1,
-                2
-            ],
-            "type": "EV",
-            "threshold_algorithm": "LI",
-            "label": "CY7",
-            "threshold_min": 65536,
-            "threshold_max": 123,
-            "min_particle_size": 0.25,
-            "max_particle_size": 0.23,
-            "min_circularity": 0.2,
-            "snap_area_size": 2,
-            "margin_crop": 1,
-            "zprojection": "MAX"
-        },
-        {
-            "index": [
-                1,
-                2
-            ],
-            "type": "NUCLEUS",
-            "threshold_algorithm": "LI",
-            "label": "CY7",
-            "threshold_min": 65536,
-            "threshold_max": 123,
-            "min_particle_size": 0.25,
-            "max_particle_size": 0.23,
-            "min_circularity": 0.2,
-            "snap_area_size": 2,
-            "margin_crop": 1,
-            "zprojection": "MAX"
-        }
-    ],
-    "min_coloc_factor": 15.5,
-    "pixel_in_micrometer": 0.001,
-    "with_control_images": true,
-    "with_detailed_report": true
-}
-*/
-
+///
+/// Generate analyze settings
+///
 String generateAnalyzeSettings(String pipeline, String inputFolder) {
   final mainSettings = {
     "input_folder": inputFolder,
@@ -90,4 +34,39 @@ String generateAnalyzeSettings(String pipeline, String inputFolder) {
   return body;
 }
 
-void loadFromAnalyzeSettings() {}
+///
+/// Load analyze settings
+///
+void loadFromAnalyzeSettings(dynamic settings) {
+  channelRow.loadChannelSettings(settings);
+  selectedPipeline = Pipelines.stringToEnum(settings["pipeline"] as String);
+}
+
+///
+/// Store settings to local file storage
+///
+Future<void> storeSettingsToLocalFile() async {
+  final jsonString =
+      generateAnalyzeSettings(selectedPipeline!.value, inputFolder.text);
+  html.window.localStorage["IMAGEC_SETTINGS"] = jsonString;
+}
+
+
+///
+/// Load settings from local file storage
+///
+Future<void> loadSettingsFromLocalFile() async {
+  final jsonString = html.window.localStorage["IMAGEC_SETTINGS"];
+  if (jsonString != null) {
+    final storedSettings = json.decode(jsonString);
+    loadFromAnalyzeSettings(storedSettings);
+  }
+}
+
+
+///
+/// Start new project
+///
+void startNewProject()  {
+  channelRow.clearAllChannels();
+}

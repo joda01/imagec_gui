@@ -3,9 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'dart:html' as html;
 
 import 'constants.dart';
 import 'home.dart';
+import 'logic/analyzer_settings.dart';
 
 void main() {
   runApp(
@@ -44,7 +46,6 @@ class _AppState extends State<App> {
       themeMode = useLightMode ? ThemeMode.light : ThemeMode.dark;
     });
   }
-
 
   @override
   Widget build(BuildContext context) {

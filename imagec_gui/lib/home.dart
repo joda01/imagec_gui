@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'builder_navbar.dart';
+import 'logic/analyzer_settings.dart';
 import 'screens/screen_home.dart';
 import 'screens/screen_analyze.dart';
 import 'constants.dart';
@@ -132,6 +133,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     setState(() {
       screenIndex = screenSelected;
       _pageController.jumpToPage(screenSelected);
+
     });
   }
 

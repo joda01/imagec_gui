@@ -2,38 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'channel_common.dart';
 
-enum ChannelLabels {
-  none('none', 'NONE'),
-  cy3('CY3', 'CY3'),
-  cy5('CY5', 'CY5'),
-  cy7('CY7', 'CY7'),
-  dapi('DAPI', 'DAPI'),
-  gfp(
-    'GFP',
-    'GFP',
-  );
-
-  const ChannelLabels(this.label, this.value);
-  final String label;
-  final String value;
-}
-
-enum AIModelNucleus {
-  common('Common v1', 'AI_MODEL_NUCLEUS_COMMON_V1'),
-  inVitro(
-    'In vitro v1',
-    'AI_MODEL_NUCLUES_IN_VITRO_V1',
-  ),
-  inVivo(
-    'In vivo v1',
-    'AI_MODEL_NUCLEUS_IN_VIVO_V1',
-  );
-
-  const AIModelNucleus(this.label, this.value);
-  final String label;
-  final String value;
-}
-
 class ChannelSettingExplicite extends Channel {
   ChannelSettingExplicite(
       {super.key,
@@ -48,21 +16,84 @@ class ChannelSettingExplicite extends Channel {
 
   @override
   Object toJsonObject() {
-    return super.jsonObjectBuilder(settings.chSelector.getSelectedChannel());
+    return super.jsonObjectBuilder();
+  }
+
+  ///
+  /// Load channel settings from json object
+  ///
+  void loadChannelSettings(dynamic channel) {
+    super
+        .chSelector
+        .setSelectedChannel(ChannelIndex.toIndex(channel["index"] as int));
+    super.selectedChannelLabel =
+        ChannelLabels.stringToEnum(channel["label"] as String);
+    super.useAI = channel["detection_mode"] as String == "AI" ? true : false;
+
+    // Threshold settings
+    if (channel.containsKey("thresholds")) {
+      super.selectedThresholdMethod = ThresholdMethod.stringToEnum(
+          channel["thresholds"]["threshold_algorithm"]);
+
+      double minThreshodl =
+          ((channel["thresholds"]["threshold_min"] as double) * 100);
+      if (minThreshodl >= 0) {
+        super.selectedMinThreshold.text = minThreshodl.toString();
+      }
+    }
+
+    // AI settings
+    if (channel.containsKey("ai_settings")) {
+      double minProbability =
+          ((channel["ai_settings"]["probability_min"] as double) * 100);
+      if (minProbability >= 0) {
+        super.selectedMinProbability.text = minProbability.toString();
+      }
+
+      super.selectedAIModel =
+          AIModel.stringToEnum(channel["ai_settings"]["model_name"] as String);
+    }
+
+    double minCircularity = ((channel["min_circularity"] as double) * 100);
+    if (minCircularity >= 0) {
+      super.selectedMinCircularity.text = minCircularity.toString();
+    }
+
+    double snapAreaSize = ((channel["snap_area_size"] as double));
+    if (snapAreaSize >= 0) {
+      super.selectedSnapArea.text = snapAreaSize.toString();
+    }
+
+    double marginCrop = ((channel["margin_crop"] as double));
+    if (marginCrop >= 0) {
+      super.selectedMarginCrop.text = marginCrop.toString();
+    }
+
+    double minParticleSize = ((channel["min_particle_size"] as double));
+    double maxParticleSize = ((channel["max_particle_size"] as double));
+
+    if (minParticleSize >= 0 && maxParticleSize >= 0) {
+      super.selectedParticleSizeRange.text =
+          minParticleSize.toString() + "-" + maxParticleSize.toString();
+    }
+
+    //settings.thresholdMethodController.selection =
+    //    channel["thresholds"]["threshold_algorithm"];
+//
+    //print("d");
+    //settings.aiModelController.selection = channel["ai_settings"]["model_name"];
   }
 }
 
 ///
 /// Title card
 class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
-  bool useAI = false;
-
   @override
   void initState() {
     super.initState();
   }
 
-  final ChannelSelector chSelector = ChannelSelector();
+  ////////////////////////////////////////////////
   final TextEditingController chLabelsController = TextEditingController();
   final TextEditingController thresholdMethodController =
       TextEditingController();
@@ -94,11 +125,11 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
 
     ///
     /// AI Model
-    final List<DropdownMenuEntry<AIModelNucleus>> aiModelEntries =
-        <DropdownMenuEntry<AIModelNucleus>>[];
-    for (final AIModelNucleus entry in AIModelNucleus.values) {
-      aiModelEntries.add(
-          DropdownMenuEntry<AIModelNucleus>(value: entry, label: entry.label));
+    final List<DropdownMenuEntry<AIModel>> aiModelEntries =
+        <DropdownMenuEntry<AIModel>>[];
+    for (final AIModel entry in AIModel.values) {
+      aiModelEntries
+          .add(DropdownMenuEntry<AIModel>(value: entry, label: entry.label));
     }
     final ScrollController controllervertical = ScrollController();
 
@@ -144,7 +175,7 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
 
                     Padding(
                         padding: const EdgeInsets.all(10),
-                        child: SizedBox(width: 220, child: chSelector)),
+                        child: SizedBox(width: 220, child: widget.chSelector)),
 
                     //
                     // Channel labels
@@ -153,15 +184,15 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                         padding: const EdgeInsets.all(10),
                         child: DropdownMenu<ChannelLabels>(
                           width: 230,
-                          initialSelection: ChannelLabels.cy3,
+                          initialSelection: widget.selectedChannelLabel,
                           controller: chLabelsController,
                           leadingIcon: const Icon(Icons.label_outline),
                           label: const Text('Label'),
                           dropdownMenuEntries: channelLabelsEntries,
                           onSelected: (value) {
-                            //setState(() {
-                            //  selectedIcon = icon;
-                            //});
+                            setState(() {
+                              widget.selectedChannelLabel = value!;
+                            });
                           },
                         )),
 
@@ -176,10 +207,10 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                           child: SwitchListTile(
                             title: const Text('Use AI'),
                             secondary: const Icon(Icons.auto_awesome_outlined),
-                            value: useAI,
+                            value: widget.useAI,
                             onChanged: (value) {
                               setState(() {
-                                useAI = value;
+                                widget.useAI = value;
                               });
                             },
                           ),
@@ -190,33 +221,34 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                     // Threshold method
                     //
                     Visibility(
-                        visible: !useAI,
+                        visible: !widget.useAI,
                         child: Padding(
                             padding: const EdgeInsets.all(10),
                             child: DropdownMenu<ThresholdMethod>(
                               width: 230,
-                              initialSelection: ThresholdMethod.manual,
+                              initialSelection: widget.selectedThresholdMethod,
                               controller: thresholdMethodController,
                               leadingIcon: const Icon(Icons.contrast),
                               label: const Text('Thresholds'),
                               dropdownMenuEntries: thresholdMethodEntries,
                               onSelected: (value) {
-                                //setState(() {
-                                //  selectedIcon = icon;
-                                //});
+                                setState(() {
+                                  widget.selectedThresholdMethod = value!;
+                                });
                               },
                             ))),
                     //
                     // Minimum threshold
                     //
                     Visibility(
-                        visible: !useAI,
+                        visible: !widget.useAI,
                         child: Padding(
                             padding: const EdgeInsets.all(10),
                             child: SizedBox(
                               width: 230,
                               child: TextField(
                                 obscureText: false,
+                                controller: widget.selectedMinThreshold,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.allow(
                                       RegExp(r'^\d+\.?\d{0,2}')),
@@ -240,35 +272,32 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                     // AI method
                     //
                     Visibility(
-                        visible: useAI,
+                        visible: widget.useAI,
                         child: Padding(
                             padding: const EdgeInsets.all(10),
-                            child: DropdownMenu<AIModelNucleus>(
+                            child: DropdownMenu<AIModel>(
                               width: 230,
-                              initialSelection: AIModelNucleus.common,
+                              initialSelection: widget.selectedAIModel,
                               controller: aiModelController,
                               leadingIcon: const Icon(Icons.hub_outlined),
                               label: const Text('AI model'),
                               dropdownMenuEntries: aiModelEntries,
                               onSelected: (value) {
-                                //setState(() {
-                                //  selectedIcon = icon;
-                                //});
+                                widget.selectedAIModel = value!;
                               },
                             ))),
                     //
                     // Minimum probability
                     //
                     Visibility(
-                        visible: useAI,
+                        visible: widget.useAI,
                         child: Padding(
                             padding: const EdgeInsets.all(10),
                             child: SizedBox(
                               width: 230,
                               child: TextField(
                                 obscureText: false,
-                                controller: TextEditingController()
-                                  ..text = '80',
+                                controller: widget.selectedMinProbability,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.allow(
                                       RegExp(r'^\d+\.?\d{0,2}')),
@@ -301,7 +330,7 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                           width: 230,
                           child: TextField(
                             obscureText: false,
-                            controller: TextEditingController()..text = '80',
+                            controller: widget.selectedMinCircularity,
                             inputFormatters: [
                               FilteringTextInputFormatter.allow(
                                   RegExp(r'^\d+\.?\d{0,2}')),
@@ -329,8 +358,7 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                           width: 230,
                           child: TextField(
                             obscureText: false,
-                            controller: TextEditingController()
-                              ..text = '5-999999',
+                            controller: widget.selectedParticleSizeRange,
                             inputFormatters: [
                               CheckForNonEmptyTextField(
                                   regex:
@@ -359,7 +387,7 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                           width: 230,
                           child: TextField(
                             obscureText: false,
-                            controller: TextEditingController()..text = '0',
+                            controller: widget.selectedSnapArea,
                             inputFormatters: [
                               FilteringTextInputFormatter.allow(
                                   RegExp(r'^\d+\.?\d{0,2}')),
@@ -391,7 +419,7 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                           width: 230,
                           child: TextField(
                             obscureText: false,
-                            controller: TextEditingController()..text = '0',
+                            controller: widget.selectedMarginCrop,
                             inputFormatters: [
                               FilteringTextInputFormatter.allow(
                                   RegExp(r'^\d+\.?\d{0,2}')),
