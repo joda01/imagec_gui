@@ -48,14 +48,6 @@ class _AppState extends State<App> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    html.window.onBeforeUnload.listen((event) {
-      storeSettingsToLocalFile();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,

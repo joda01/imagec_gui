@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'channel_common.dart';
 
-
-
 class ChannelSettingExplicite extends Channel {
   ChannelSettingExplicite(
       {super.key,
@@ -25,7 +23,8 @@ class ChannelSettingExplicite extends Channel {
   /// Load channel settings from json object
   ///
   void loadChannelSettings(dynamic channel) {
-    super.chSelector
+    super
+        .chSelector
         .setSelectedChannel(ChannelIndex.toIndex(channel["index"] as int));
     super.selectedChannelLabel =
         ChannelLabels.stringToEnum(channel["label"] as String);
@@ -35,31 +34,48 @@ class ChannelSettingExplicite extends Channel {
     if (channel.containsKey("thresholds")) {
       super.selectedThresholdMethod = ThresholdMethod.stringToEnum(
           channel["thresholds"]["threshold_algorithm"]);
-      super.selectedMinThreshold.text =
-          ((channel["thresholds"]["threshold_min"] as double) * 100).toString();
+
+      double minThreshodl =
+          ((channel["thresholds"]["threshold_min"] as double) * 100);
+      if (minThreshodl >= 0) {
+        super.selectedMinThreshold.text = minThreshodl.toString();
+      }
     }
 
     // AI settings
     if (channel.containsKey("ai_settings")) {
-      super.selectedMinProbability.text =
-          ((channel["ai_settings"]["probability_min"] as double) * 100.0)
-              .toString();
+      double minProbability =
+          ((channel["ai_settings"]["probability_min"] as double) * 100);
+      if (minProbability >= 0) {
+        super.selectedMinProbability.text = minProbability.toString();
+      }
 
       super.selectedAIModel =
           AIModel.stringToEnum(channel["ai_settings"]["model_name"] as String);
     }
 
-    super.selectedMinCircularity.text =
-        ((channel["min_circularity"] as double) * 100).toString();
-    super.selectedSnapArea.text =
-        ((channel["snap_area_size"] as double)).toString();
-    super.selectedMarginCrop.text =
-        ((channel["margin_crop"] as double)).toString();
+    double minCircularity = ((channel["min_circularity"] as double) * 100);
+    if (minCircularity >= 0) {
+      super.selectedMinCircularity.text = minCircularity.toString();
+    }
 
-    super.selectedParticleSizeRange.text =
-        ((channel["min_particle_size"] as double)).toString() +
-            "-" +
-            ((channel["max_particle_size"] as double)).toString();
+    double snapAreaSize = ((channel["snap_area_size"] as double));
+    if (snapAreaSize >= 0) {
+      super.selectedSnapArea.text = snapAreaSize.toString();
+    }
+
+    double marginCrop = ((channel["margin_crop"] as double));
+    if (marginCrop >= 0) {
+      super.selectedMarginCrop.text = marginCrop.toString();
+    }
+
+    double minParticleSize = ((channel["min_particle_size"] as double));
+    double maxParticleSize = ((channel["max_particle_size"] as double));
+
+    if (minParticleSize >= 0 && maxParticleSize >= 0) {
+      super.selectedParticleSizeRange.text =
+          minParticleSize.toString() + "-" + maxParticleSize.toString();
+    }
 
     //settings.thresholdMethodController.selection =
     //    channel["thresholds"]["threshold_algorithm"];
@@ -76,8 +92,6 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
   void initState() {
     super.initState();
   }
-
-
 
   ////////////////////////////////////////////////
   final TextEditingController chLabelsController = TextEditingController();

@@ -20,7 +20,7 @@ enum Pipelines {
   final String label;
   final String value;
 
-    static Pipelines stringToEnum(String inString) {
+  static Pipelines stringToEnum(String inString) {
     for (final enumI in Pipelines.values) {
       if (enumI.value == inString) {
         return enumI;
@@ -204,7 +204,6 @@ abstract class Channel extends StatefulWidget {
   final State parent;
   final ChannelTypeLabels channelType;
 
-
   // Taken settings
   final ChannelSelector chSelector = ChannelSelector();
   ChannelLabels selectedChannelLabel = ChannelLabels.cy3;
@@ -224,17 +223,40 @@ abstract class Channel extends StatefulWidget {
 
   Object toJsonObject();
 
-  (double,double) getMinMaxParticleSize(){
+  (double, double) getMinMaxParticleSize() {
     final min = double.parse(selectedParticleSizeRange.text.split("-")[0]);
     final max = double.parse(selectedParticleSizeRange.text.split("-")[1]);
-    return (min,max);
+    return (min, max);
   }
-
 
   @protected
   Object jsonObjectBuilder() {
-
     final (minParticle, maxParticle) = getMinMaxParticleSize();
+    double thresholdMin = -1;
+    try {
+      thresholdMin = double.parse(selectedMinThreshold.text) / 100;
+    } catch (e) {}
+
+    double probability_min = -1;
+    try {
+      probability_min = double.parse(selectedMinProbability.text) / 100;
+    } catch (e) {}
+
+    double min_circularity = -1;
+    try {
+      min_circularity = double.parse(selectedMinCircularity.text) / 100;
+    } catch (ex) {}
+
+    double snap_area_size = -1;
+    try {
+      snap_area_size = double.parse(selectedSnapArea.text);
+    } catch (ex) {}
+
+    double margin_crop = -1;
+    try {
+      margin_crop = double.parse(selectedMarginCrop.text);
+    } catch (ex) {}
+
     final channelSettings = {
       "index": chSelector.getSelectedChannel(),
       "type": channelType.value,
@@ -242,18 +264,18 @@ abstract class Channel extends StatefulWidget {
       "detection_mode": true == useAI ? "AI" : "THRESHOLD",
       "thresholds": {
         "threshold_algorithm": selectedThresholdMethod.value,
-        "threshold_min":double.parse(selectedMinThreshold.text)/100,
+        "threshold_min": thresholdMin,
         "threshold_max": 1,
       },
       "ai_settings": {
         "model_name": selectedAIModel.value,
-        "probability_min": double.parse(selectedMinProbability.text)/100
+        "probability_min": probability_min
       },
       "min_particle_size": minParticle,
       "max_particle_size": maxParticle,
-      "min_circularity": double.parse(selectedMinCircularity.text)/100,
-      "snap_area_size": double.parse(selectedSnapArea.text),
-      "margin_crop": double.parse(selectedMarginCrop.text),
+      "min_circularity": min_circularity,
+      "snap_area_size": snap_area_size,
+      "margin_crop": margin_crop,
       "zprojection": "MAX",
     };
     return channelSettings;
