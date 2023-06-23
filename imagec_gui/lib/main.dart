@@ -3,9 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'dart:html' as html;
 
 import 'constants.dart';
 import 'home.dart';
+import 'logic/analyzer_settings.dart';
 
 void main() {
   runApp(
@@ -45,6 +47,13 @@ class _AppState extends State<App> {
     });
   }
 
+  @override
+  void initState() {
+    super.initState();
+    html.window.onBeforeUnload.listen((event) {
+      storeSettingsToLocalFile();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
