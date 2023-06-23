@@ -4,14 +4,16 @@
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:namer_app/screens/screen_home.dart';
 import '../channel/channel_common.dart';
 import '../channel/channel_explicite.dart';
 import '../dialogs/dialog_analyze.dart';
+import '../logic/analyzer_settings.dart';
 import '../logic/backend_communication.dart';
 
 DialogAnalyze dialogAnalyze = DialogAnalyze();
-const Widget divider = SizedBox(height: 10);
 ChannelRow channelRow = ChannelRow();
+const Widget divider = SizedBox(height: 10);
 
 // Folder selection
 String newSelectedFolder = "";
@@ -29,40 +31,6 @@ class ScreenAnalyze extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context)
-        .textTheme
-        .apply(displayColor: Theme.of(context).colorScheme.onSurface);
-
-    Widget title() {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        child: Text("Welcome", style: textTheme.displayLarge!),
-      );
-    }
-
-    Widget footer() => RichText(
-          textAlign: TextAlign.center,
-          text: TextSpan(
-            style: Theme.of(context).textTheme.bodySmall,
-            children: [
-              const TextSpan(
-                  text:
-                      'Copyright 2023 J.D | many thanks to Melanie Schuerz and Anna Mueller | '),
-              TextSpan(
-                text: 'imagec.org',
-                style: const TextStyle(decoration: TextDecoration.underline),
-                recognizer: TapGestureRecognizer()
-                  ..onTap = () async {
-                    final url = Uri.parse(
-                      'https://www.imagec.org',
-                    );
-                  },
-              ),
-              const TextSpan(text: ''),
-            ],
-          ),
-        );
-
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
       return channelRow;
@@ -80,19 +48,29 @@ class ChannelRow extends StatefulWidget {
   void loadChannelSettings(dynamic settings) {
     rowStateful.loadChannelSettings(settings);
   }
+
+  void clearAllChannels() {
+    rowStateful.clearAllChannels();
+  }
 }
 
 class _ChannelRow extends State<ChannelRow>
     with AutomaticKeepAliveClientMixin<ChannelRow> {
   final ScrollController controllerHorizontal = ScrollController();
 
-  @override
-  void initState() {
-    super.initState();
-    actChannels.add(new AddChannelButton(
+  void addChannelButton() {
+    actChannels.add(AddChannelButton(
         scroll: globalCardControllervertical,
         parent: this,
         channelType: ChannelTypeLabels.nucleus));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (actChannels.isEmpty) {
+      addChannelButton();
+    }
   }
 
   void _updateFolderPath(String path) {
@@ -105,21 +83,29 @@ class _ChannelRow extends State<ChannelRow>
     newSelectedFolder = newFolder;
   }
 
+  void clearAllChannels() {
+    actChannels.clear();
+    try {
+      setState(() {
+        newSelectedFolder = "";
+        inputFolder.text = "";
+      });
+    } catch (e) {}
+    addChannelButton();
+  }
+
   ///
   /// Load channel settings from json file
   ///
   void loadChannelSettings(dynamic settings) {
+    // If empty add open buttons
     actChannels.clear();
-
-actChannels.add(AddChannelButton(
-        scroll: globalCardControllervertical,
-        parent: this,
-        channelType: ChannelTypeLabels.nucleus));
 
     //print(settings);
     final channels = settings["channels"] as List<dynamic>;
     for (final dynamic channel in channels) {
-    int idx = actChannels.length - 1;
+      int idx = actChannels.length;
+
       var channelType = ChannelTypeLabels.nucleus;
       switch (channel["type"] as String) {
         case "EV":
@@ -148,7 +134,15 @@ actChannels.add(AddChannelButton(
       chSet.loadChannelSettings(channel);
       actChannels.insert(idx, chSet);
     }
-    setState(() {});
+
+    newSelectedFolder = settings["input_folder"] as String;
+    inputFolder.text = newSelectedFolder;
+
+    try {
+      setState(() {});
+    } catch (e) {}
+
+    addChannelButton();
   }
 
   ///
@@ -363,7 +357,7 @@ class _AddChannelButton extends State<AddChannelButton>
     final newJsonFilePath = path;
     try {
       final settings = await getSettingsConfig(newJsonFilePath);
-      channelRow.loadChannelSettings(settings);
+      loadFromAnalyzeSettings(settings);
     } catch (e) {}
 
     setState(() {});
@@ -448,7 +442,20 @@ class _AddChannelButton extends State<AddChannelButton>
                           child: Text(
                               "Click the + button to add a channel\nor the folder to open existing settings.",
                               style: textTheme.bodyLarge))),
-
+                  Visibility(
+                      visible: actChannels.length > 1,
+                      child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: SizedBox(
+                            width: 60,
+                            child: FloatingActionButton(
+                              onPressed: () {
+                                storeSettingsToLocalFile();
+                              },
+                              tooltip: "Save settings",
+                              child: const Icon(Icons.save_as_outlined),
+                            ),
+                          ))),
                   //
                   // Start analyzes button
                   //

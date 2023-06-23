@@ -19,6 +19,15 @@ enum Pipelines {
   const Pipelines(this.label, this.value);
   final String label;
   final String value;
+
+    static Pipelines stringToEnum(String inString) {
+    for (final enumI in Pipelines.values) {
+      if (enumI.value == inString) {
+        return enumI;
+      }
+    }
+    return Pipelines.count;
+  }
 }
 
 ///

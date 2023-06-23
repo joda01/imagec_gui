@@ -2,8 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:namer_app/logic/analyzer_settings.dart';
+import 'package:namer_app/screens/screen_analyze.dart';
 
 import '../constants.dart';
 
@@ -105,12 +109,26 @@ class TitleCard extends StatelessWidget {
                   'High throughput image analysis for biologists in scientific environments.',
                   style: textTheme.bodyLarge!),
             ),
-            Padding(
-                padding: const EdgeInsets.all(20),
-                child: FilledButton(
-                  onPressed: getStartedPressed,
-                  child: const Text('Get Started'),
-                )),
+            Wrap(spacing: 5.0, runSpacing: 1.0, children: [
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 5, 5),
+                  child: FilledButton(
+                    onPressed: () {
+                      getStartedPressed();
+                      startNewProject();
+                    },
+                    child: const Text('Start new project'),
+                  )),
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(5, 10, 20, 5),
+                  child: FilledButton(
+                    onPressed: () {
+                      getStartedPressed();
+                      loadSettingsFromLocalFile();
+                    },
+                    child: const Text('Continue where you left'),
+                  ))
+            ]),
           ])),
         ),
       ),
