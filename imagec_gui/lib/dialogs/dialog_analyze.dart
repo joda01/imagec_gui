@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../channel/channel_common.dart';
+import '../channel/channel.dart';
+import '../channel/channel_enums.dart';
 import '../logic/analyzer_settings.dart';
 import '../logic/backend_communication.dart';
 
@@ -274,6 +275,7 @@ class _DialogAnalyze extends State<DialogAnalyze>
                             ),
                           ]),
                       CustomDivider(
+                        text: "",
                         padding: 20,
                       ),
                       Wrap(

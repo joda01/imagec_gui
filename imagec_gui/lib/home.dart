@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'builder_navbar.dart';
 import 'logic/analyzer_settings.dart';
 import 'screens/screen_home.dart';
-import 'screens/screen_analyze.dart';
+import 'screens/screen_channels.dart';
 import 'constants.dart';
 
 const List<NavigationDestination> appBarDestinations = [

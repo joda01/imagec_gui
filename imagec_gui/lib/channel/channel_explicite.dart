@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'channel_common.dart';
+import 'package:namer_app/channel/channel.dart';
+import 'package:namer_app/preprocessing/preprocessing_z_stack.dart';
+import '../preprocessing/preprocessing_margin_crop.dart';
+import '../preprocessing/preprocessing.dart';
+import 'channel_enums.dart';
 
 class ChannelSettingExplicite extends Channel {
   ChannelSettingExplicite(
@@ -99,8 +103,15 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
       TextEditingController();
   final TextEditingController aiModelController = TextEditingController();
 
+  List<PreprocessingWidget> preprocessingSteps = [];
+
   @override
   Widget build(BuildContext context) {
+
+preprocessingSteps.insert(0, PreprocessingWidgetMarginCrop(widget: widget,),);
+preprocessingSteps.insert(0, PreprocessingZStack(widget: widget,),);
+
+
     final textTheme = Theme.of(context)
         .textTheme
         .apply(displayColor: Theme.of(context).colorScheme.onSurface);
@@ -199,7 +210,14 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                     //
                     // Divider
                     //
-                    CustomDivider(),
+                    CustomDivider(text: 'Preprocessing'),
+                    Column(children: preprocessingSteps,),
+                    AddPreprocessingWidget(widget: widget),
+
+                    //
+                    // Divider
+                    //
+                    CustomDivider(text: 'Detection'),
                     Padding(
                         padding: const EdgeInsets.all(10),
                         child: SizedBox(
@@ -319,7 +337,9 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                     //
                     // Divider
                     //
-                    CustomDivider(),
+                    CustomDivider(
+                      text: 'Filtering',
+                    ),
 
                     //
                     // Minimum circularity
@@ -408,39 +428,7 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                     //
                     // Divider
                     //
-                    CustomDivider(),
-
-                    //
-                    // Margin crop
-                    //
-                    Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: SizedBox(
-                          width: 230,
-                          child: TextField(
-                            obscureText: false,
-                            controller: widget.selectedMarginCrop,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                  RegExp(r'^\d+\.?\d{0,2}')),
-                              RangeTextInputFormatter(
-                                  min: 0, max: double.infinity)
-                            ],
-                            keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
-                            decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.crop),
-                                suffixText: 'µm',
-                                border: OutlineInputBorder(),
-                                labelText: 'Margin crop',
-                                helperText: 'Margin crop'),
-                          ),
-                        )),
-
-                    //
-                    // Divider
-                    //
-                    CustomDivider(),
+                    CustomDivider(text: ""),
 
                     RemoveChannelWidget(widget: widget)
                   ])),

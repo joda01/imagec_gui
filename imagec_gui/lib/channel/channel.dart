@@ -1,198 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:namer_app/channel/channel_enums.dart';
 
-List<Channel> actChannels = [];
-State? addChannelButtonStateWidget;
-final ScrollSyncer globalCardControllervertical = ScrollSyncer();
-
-///
-/// Enum pipelines
-enum Pipelines {
-  count('Count', 'COUNT'),
-  coloc(
-    'Coloc',
-    'COLOC',
-  ),
-  inCellColoc('In cell coloc', 'COLOC_IN_CELL');
-
-  const Pipelines(this.label, this.value);
-  final String label;
-  final String value;
-
-  static Pipelines stringToEnum(String inString) {
-    for (final enumI in Pipelines.values) {
-      if (enumI.value == inString) {
-        return enumI;
-      }
-    }
-    return Pipelines.count;
-  }
-}
+import '../helper/scroll_syncer.dart';
+import '../screens/screen_channels.dart';
 
 ///
-/// Export gadgets
-enum PostProcessingScript {
-  liner_regression(
-      'Linear regression (R)', 'POST_PROCESSING_SCRIPT_LINER_REGRESSION'),
-  histogram('Histogram (Python)', 'POST_PROCESSING_SCRIPT_HISTOGRAM'),
-  graphical_view(
-    'Graphical comparison (Python)',
-    'POST_PROCESSING_SCRIPT_GRAPHICAL_COMPARISON',
-  );
-
-  const PostProcessingScript(this.label, this.value);
-  final String label;
-  final String value;
-}
-
-enum ChannelLabels {
-  none('none', 'NONE'),
-  cy3('CY3', 'CY3'),
-  cy5('CY5', 'CY5'),
-  cy7('CY7', 'CY7'),
-  dapi('DAPI', 'DAPI'),
-  gfp(
-    'GFP',
-    'GFP',
-  );
-
-  const ChannelLabels(this.label, this.value);
-  final String label;
-  final String value;
-
-  static stringToEnum(String str) {
-    for (final label in ChannelLabels.values) {
-      if (label.value == str) {
-        return label;
-      }
-    }
-    return ChannelLabels.none;
-  }
-}
-
-enum AIModel {
-  common('Common v1', 'AI_MODEL_COMMON_V1');
-
-  const AIModel(this.label, this.value);
-  final String label;
-  final String value;
-
-  static stringToEnum(String str) {
-    for (final label in AIModel.values) {
-      if (label.value == str) {
-        return label;
-      }
-    }
-    return AIModel.common;
-  }
-}
-
+/// Abstract channel class
 ///
-/// Enum values
-enum ChannelTypeLabels {
-  nucleus(
-    'Nucleus (alpha)',
-    'NUCLEUS',
-  ),
-  cell('Cell (alpha)', 'CELL'),
-  ev('EV (NA)', 'EV'),
-  background('Background (NA)', 'BACKGROUND'),
-  tetraspeck_bead('Tetraspeck Bead (NA)', 'TETRASPECK_BEAD');
-
-  const ChannelTypeLabels(this.label, this.value);
-  final String label;
-  final String value;
-
-  static ChannelTypeLabels stringToEnum(String inString) {
-    for (final enumI in ChannelTypeLabels.values) {
-      if (enumI.value == inString) {
-        return enumI;
-      }
-    }
-    return ChannelTypeLabels.nucleus;
-  }
-}
-
-enum ThresholdMethod {
-  manual('Manual', 'MANUAL'),
-  li(
-    'Li',
-    'LI',
-  ),
-  triangle(
-    'Min error',
-    'MIN_ERROR',
-  ),
-  min_error('Triangle', 'TRIANGLE');
-
-  const ThresholdMethod(this.label, this.value);
-  final String label;
-  final String value;
-
-  static ThresholdMethod stringToEnum(String inString) {
-    for (final enumI in ThresholdMethod.values) {
-      if (enumI.value == inString) {
-        return enumI;
-      }
-    }
-    return ThresholdMethod.manual;
-  }
-}
-
-enum ChannelIndex {
-  ch01('01', 0),
-  ch02('02', 1),
-  ch03('03', 2),
-  ch04('04', 3),
-  ch05('05', 4),
-  ch06('06', 5),
-  ch07('07', 6),
-  ch08('08', 7),
-  ch09('09', 8),
-  ch10('10', 9),
-  ch11('11', 10),
-  ch12('12', 11);
-  //ch13('13', 12),
-  //ch14('14', 13),
-  //ch15('15', 14),
-  //ch16('16', 15),
-  // ch17('17', 16),
-  //  ch18('18', 17);
-
-  const ChannelIndex(this.label, this.value);
-  final String label;
-  final int value;
-
-  static ChannelIndex toIndex(int i) {
-    for (final channel in ChannelIndex.values) {
-      if (channel.value == i) {
-        return channel;
-      }
-    }
-    return ChannelIndex.ch01;
-  }
-}
-
-class ScrollSyncer {
-  StreamController<ScrollController> _streamController =
-      StreamController<ScrollController>.broadcast();
-
-  void setPosition(ScrollController position) {
-    if (pos != position.offset) {
-      pos = position.offset;
-      _streamController.add(position);
-    }
-  }
-
-  Stream<ScrollController> get onChange => _streamController.stream;
-  double pos = 0;
-
-  void dispose() {
-    _streamController.close();
-  }
-}
-
 abstract class Channel extends StatefulWidget {
   Channel(
       {super.key,
@@ -345,21 +161,23 @@ class RangeTextInputFormatter extends TextInputFormatter {
 }
 
 class CustomDivider extends StatelessWidget {
-  CustomDivider({this.padding = 10});
+  CustomDivider({required this.text, this.padding = 10});
+  final String text;
   final double padding;
   @override
   Widget build(BuildContext context) => Padding(
       padding: EdgeInsets.all(padding),
       child: SizedBox(
-        height: 10.0,
+        height: 15.0,
         width: 230,
-        child: Center(
-          child: Container(
+        child: Wrap(children: [
+          Text(text, style: TextStyle(fontStyle: FontStyle.italic)),
+          Container(
             margin: EdgeInsetsDirectional.only(start: 1.0, end: 1.0),
             height: 1.0,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: Theme.of(context).colorScheme.onBackground,
           ),
-        ),
+        ]),
       ));
 }
 
@@ -383,6 +201,31 @@ class RemoveChannelWidget extends StatelessWidget {
             backgroundColor: Theme.of(context).colorScheme.error),
       ));
 }
+
+class AddPreprocessingWidget extends StatelessWidget {
+  AddPreprocessingWidget({required this.widget});
+
+  final Channel widget;
+  @override
+  Widget build(BuildContext context) => Padding(
+      padding: const EdgeInsets.all(20),
+      child: FilledButton(
+        // co:Theme.of(context).colorScheme.onError,
+
+        onPressed: () {
+          actChannels.remove(widget);
+          widget.parent.setState(() {});
+          addChannelButtonStateWidget?.setState(() {});
+        },
+        child: Wrap(children: [
+          const Icon(Icons.add),
+          const Text(' Add preprocessing step')
+        ]),
+        //style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.onSecondary),
+      ));
+}
+
+
 
 class PreviewButton extends StatelessWidget {
   PreviewButton({required this.widget});

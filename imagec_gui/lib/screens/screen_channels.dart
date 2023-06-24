@@ -5,15 +5,19 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:namer_app/screens/screen_home.dart';
-import '../channel/channel_common.dart';
+import '../channel/channel.dart';
+import '../channel/channel_enums.dart';
 import '../channel/channel_explicite.dart';
 import '../dialogs/dialog_analyze.dart';
+import '../helper/scroll_syncer.dart';
 import '../logic/analyzer_settings.dart';
 import '../logic/backend_communication.dart';
 
 DialogAnalyze dialogAnalyze = DialogAnalyze();
 ChannelRow channelRow = ChannelRow();
 const Widget divider = SizedBox(height: 10);
+List<Channel> actChannels = [];
+
 
 // Folder selection
 String newSelectedFolder = "";
