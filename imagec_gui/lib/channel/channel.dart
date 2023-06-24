@@ -301,12 +301,8 @@ class PreprocessingstepSelector extends StatefulWidget {
 
   Set<PreprocessingSteps> filters = <PreprocessingSteps>{};
 
-  PreprocessingSteps getSelectedChannel() {
-    if (filters.length > 0) {
-      return filters.first;
-    } else {
-      return PreprocessingSteps.none;
-    }
+  Set<PreprocessingSteps> getSelectedChannel() {
+   return filters;
   }
 
   void setSelectedChannel(PreprocessingSteps ch) {
@@ -342,7 +338,7 @@ class _PreprocessingstepSelector extends State<PreprocessingstepSelector> {
                 showCheckmark: false,
                 onSelected: (bool selected) {
                   setState(() {
-                    widget.filters.clear(); // Allow only one selection
+                    //widget.filters.clear(); // Allow only one selection
                     if (selected) {
                       widget.filters.add(exercise);
                     } else {

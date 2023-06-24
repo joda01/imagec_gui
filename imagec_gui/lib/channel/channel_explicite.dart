@@ -239,8 +239,9 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
             FilledButton(
               child: const Text('Okay'),
               onPressed: () {
-                addPreprocessingStep(
-                    preprocessingSelector.getSelectedChannel());
+                for (final step in preprocessingSelector.getSelectedChannel()) {
+                  addPreprocessingStep(step);
+                }
                 Navigator.of(context).pop();
               },
             ),
