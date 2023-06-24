@@ -289,3 +289,72 @@ class _ChannelSelectorState extends State<ChannelSelector> {
     );
   }
 }
+
+///
+/// Function selector
+class PreprocessingstepSelector extends StatefulWidget {
+  PreprocessingstepSelector({super.key});
+
+  @override
+  State<PreprocessingstepSelector> createState() =>
+      _PreprocessingstepSelector();
+
+  Set<PreprocessingSteps> filters = <PreprocessingSteps>{};
+
+  PreprocessingSteps getSelectedChannel() {
+    if (filters.length > 0) {
+      return filters.first;
+    } else {
+      return PreprocessingSteps.none;
+    }
+  }
+
+  void setSelectedChannel(PreprocessingSteps ch) {
+    filters.clear();
+    filters.add(ch);
+  }
+}
+
+class _PreprocessingstepSelector extends State<PreprocessingstepSelector> {
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final ScrollController controllervertical = ScrollController();
+
+    return Scrollbar(
+      thickness: 10,
+      //thumbVisibility: true,
+      interactive: true,
+      controller: controllervertical,
+      child: SingleChildScrollView(
+        controller: controllervertical,
+        child: Wrap(
+          spacing: 5.0,
+          runSpacing: 5.0,
+          children:
+              PreprocessingSteps.values.map((PreprocessingSteps exercise) {
+            return Container(
+              child: FilterChip(
+                label:
+                    Wrap(children: [exercise.icon, Text(" " + exercise.label)]),
+                selected: widget.filters.contains(exercise),
+                //selectedColor: Theme.of(context).colorScheme.onSurface,
+                showCheckmark: false,
+                onSelected: (bool selected) {
+                  setState(() {
+                    widget.filters.clear(); // Allow only one selection
+                    if (selected) {
+                      widget.filters.add(exercise);
+                    } else {
+                      widget.filters.remove(exercise);
+                    }
+                  });
+                },
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+}

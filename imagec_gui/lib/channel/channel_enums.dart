@@ -81,16 +81,17 @@ enum ChannelLabels {
 ///
 ///
 enum PreprocessingSteps {
-  none('none', 'NONE'),
-  marginCrop('Margin crop', 'MARGIN_CROP'),
-  rollingBall('Rolling ball', 'ROLLING_BALL'),
-  zStack('Z-Stack', 'MAXIMUM_INTENSITY_PROJECTION'),
-  backgroundSubtraction('Background subtraction', 'BACKGROUND_SUBTRACTION'),
-  bluer('Bluer', 'BLUER');
+  none('none', 'NONE', Icon(Icons.not_interested_outlined)),
+  marginCrop('Margin crop', 'MARGIN_CROP', Icon(Icons.crop_outlined)),
+  rollingBall('Rolling ball', 'ROLLING_BALL', Icon(Icons.blur_on_sharp)),
+  zStack('Z-Stack', 'MAXIMUM_INTENSITY_PROJECTION', Icon(Icons.filter_none_outlined)),
+  backgroundSubtraction('Background sub.', 'BACKGROUND_SUBTRACTION', Icon(Icons.wallpaper_outlined)),
+  bluer('Bluer', 'BLUER', Icon(Icons.blur_linear_outlined));
 
-  const PreprocessingSteps(this.label, this.value);
+  const PreprocessingSteps(this.label, this.value, this.icon);
   final String label;
   final String value;
+  final Icon icon;
 
   static stringToEnum(String str) {
     for (final label in PreprocessingSteps.values) {

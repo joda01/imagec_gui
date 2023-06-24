@@ -106,56 +106,55 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
 
   List<PreprocessingWidget> preprocessingSteps = [];
 
-    ///
-    /// Adds an preprocessing step
-    ///
-    void addPreprocessingStep(PreprocessingSteps preprocessingStep) {
-      setState(() {
-        switch (preprocessingStep) {
-          case PreprocessingSteps.marginCrop:
-            preprocessingSteps.add(
-              PreprocessingWidgetMarginCrop(
-                widget: widget,
-              ),
-            );
-            break;
-          case PreprocessingSteps.rollingBall:
-            preprocessingSteps.add(
-              PreprocessingRollingBall(
-                widget: widget,
-              ),
-            );
-            break;
-          case PreprocessingSteps.zStack:
-            preprocessingSteps.add(
-              PreprocessingZStack(
-                widget: widget,
-              ),
-            );
-            break;
-          case PreprocessingSteps.bluer:
-            preprocessingSteps.add(
-              PreprocessingRollingBall(
-                widget: widget,
-              ),
-            );
-            break;
+  ///
+  /// Adds an preprocessing step
+  ///
+  void addPreprocessingStep(PreprocessingSteps preprocessingStep) {
+    setState(() {
+      switch (preprocessingStep) {
+        case PreprocessingSteps.marginCrop:
+          preprocessingSteps.add(
+            PreprocessingWidgetMarginCrop(
+              widget: widget,
+            ),
+          );
+          break;
+        case PreprocessingSteps.rollingBall:
+          preprocessingSteps.add(
+            PreprocessingRollingBall(
+              widget: widget,
+            ),
+          );
+          break;
+        case PreprocessingSteps.zStack:
+          preprocessingSteps.add(
+            PreprocessingZStack(
+              widget: widget,
+            ),
+          );
+          break;
+        case PreprocessingSteps.bluer:
+          preprocessingSteps.add(
+            PreprocessingRollingBall(
+              widget: widget,
+            ),
+          );
+          break;
 
-          default:
-            break;
-        }
-      });
-    }
+        default:
+          break;
+      }
+    });
+  }
 
-    ///
-    /// Remove preprocessing step
-    ///
-    void removePreprocessingStep(PreprocessingWidget wdgt) {
-      setState(() {
-        preprocessingSteps.remove(wdgt);
-      });
-    }
-
+  ///
+  /// Remove preprocessing step
+  ///
+  void removePreprocessingStep(PreprocessingWidget wdgt) {
+    setState(() {
+      preprocessingSteps.remove(wdgt);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -205,8 +204,6 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
 
     controllervertical.addListener(_hasScrolled);
 
-
-
     ///
     /// Show add preprocessing dialog
     ///
@@ -223,21 +220,17 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
             value: entry, label: entry.label));
       }
 
-      PreprocessingSteps? selectedPreprocessingStep = PreprocessingSteps.none;
+      PreprocessingstepSelector preprocessingSelector =
+          PreprocessingstepSelector();
 
       showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Add preprocessing step'),
-          content: DropdownMenu<PreprocessingSteps>(
-            width: 230,
-            initialSelection: PreprocessingSteps.none,
-            controller: preprocessingStepController,
-            leadingIcon: const Icon(Icons.layers_outlined),
-            label: const Text('Function'),
-            dropdownMenuEntries: availablePreprocessingSteps,
-            onSelected: (value) => selectedPreprocessingStep = value,
-          ),
+          title: const Text('Select function'),
+          content: SizedBox(
+              //height: 200,
+              width: 450,
+              child: preprocessingSelector),
           actions: <Widget>[
             TextButton(
               child: const Text('Dismiss'),
@@ -246,7 +239,8 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
             FilledButton(
               child: const Text('Okay'),
               onPressed: () {
-                addPreprocessingStep(selectedPreprocessingStep!);
+                addPreprocessingStep(
+                    preprocessingSelector.getSelectedChannel());
                 Navigator.of(context).pop();
               },
             ),
