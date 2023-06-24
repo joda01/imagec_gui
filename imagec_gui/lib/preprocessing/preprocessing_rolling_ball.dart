@@ -13,8 +13,8 @@ import 'package:namer_app/preprocessing/preprocessing.dart';
 ///
 /// Margin crop preprocessing
 ///
-class PreprocessingWidgetMarginCrop extends PreprocessingWidget {
-  PreprocessingWidgetMarginCrop({required super.widget});
+class PreprocessingRollingBall extends PreprocessingWidget {
+  PreprocessingRollingBall({required super.widget});
 
   @override
   Widget getChild() {
@@ -27,11 +27,11 @@ class PreprocessingWidgetMarginCrop extends PreprocessingWidget {
       ],
       keyboardType: TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
-          prefixIcon: const Icon(Icons.crop),
+          prefixIcon: const Icon(Icons.lens_blur),
           suffixText: 'µm',
           border: OutlineInputBorder(),
-          labelText: 'Margin size',
-          helperText: 'Margin to crop'),
+          labelText: 'Ball size',
+          helperText: 'Rolling ball background subtraction'),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:namer_app/channel/channel.dart';
 import 'package:namer_app/preprocessing/preprocessing_z_stack.dart';
 import '../preprocessing/preprocessing_margin_crop.dart';
 import '../preprocessing/preprocessing.dart';
+import '../preprocessing/preprocessing_rolling_ball.dart';
 import 'channel_enums.dart';
 
 class ChannelSettingExplicite extends Channel {
@@ -107,10 +108,24 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
 
   @override
   Widget build(BuildContext context) {
-
-preprocessingSteps.insert(0, PreprocessingWidgetMarginCrop(widget: widget,),);
-preprocessingSteps.insert(0, PreprocessingZStack(widget: widget,),);
-
+    preprocessingSteps.insert(
+      0,
+      PreprocessingWidgetMarginCrop(
+        widget: widget,
+      ),
+    );
+    preprocessingSteps.insert(
+      0,
+      PreprocessingZStack(
+        widget: widget,
+      ),
+    );
+    preprocessingSteps.insert(
+      0,
+      PreprocessingRollingBall(
+        widget: widget,
+      ),
+    );
 
     final textTheme = Theme.of(context)
         .textTheme
@@ -211,7 +226,9 @@ preprocessingSteps.insert(0, PreprocessingZStack(widget: widget,),);
                     // Divider
                     //
                     CustomDivider(text: 'Preprocessing'),
-                    Column(children: preprocessingSteps,),
+                    Column(
+                      children: preprocessingSteps,
+                    ),
                     AddPreprocessingWidget(widget: widget),
 
                     //
