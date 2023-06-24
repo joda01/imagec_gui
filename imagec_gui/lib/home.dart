@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:namer_app/screens/screen_analyze.dart';
 import 'builder_navbar.dart';
 import 'logic/analyzer_settings.dart';
 import 'screens/screen_home.dart';
@@ -18,16 +19,16 @@ const List<NavigationDestination> appBarDestinations = [
   ),
   NavigationDestination(
     tooltip: '',
-    icon: Icon(Icons.broken_image_outlined),
-    label: 'Analyze',
-    selectedIcon: Icon(Icons.broken_image),
+    icon: Icon(Icons.grid_view_outlined),
+    label: 'Channels',
+    selectedIcon: Icon(Icons.grid_view),
   ),
-  //NavigationDestination(
-  //  tooltip: '',
-  //  icon: Icon(Icons.settings_outlined),
-  //  label: 'Settings',
-  //  selectedIcon: Icon(Icons.settings),
-  //),
+  NavigationDestination(
+    tooltip: '',
+    icon: Icon(Icons.functions_outlined),
+    label: 'Analyses',
+    selectedIcon: Icon(Icons.functions),
+  ),
   //NavigationDestination(
   //  tooltip: '',
   //  icon: Icon(Icons.info_outline),
@@ -174,8 +175,9 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
           appBar: createAppBar(),
           body: PageView(controller: _pageController, children: <Widget>[
             ScreenHome(),
-            ScreenAnalyze(),
-            //ScreenAnalyze()
+            ScreenChannles(),
+            ScreenAnalysis()
+            //ScreenChannles()
           ]),
           navigationRail: NavigationRail(
             extended: showLargeSizeLayout,

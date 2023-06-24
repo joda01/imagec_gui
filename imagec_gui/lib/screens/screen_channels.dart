@@ -4,16 +4,17 @@
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:namer_app/screens/screen_analyze.dart';
 import 'package:namer_app/screens/screen_home.dart';
 import '../channel/channel.dart';
 import '../channel/channel_enums.dart';
 import '../channel/channel_explicite.dart';
-import '../dialogs/dialog_analyze.dart';
+import '../constants.dart';
+import 'screen_analyze.dart';
 import '../helper/scroll_syncer.dart';
 import '../logic/analyzer_settings.dart';
 import '../logic/backend_communication.dart';
 
-DialogAnalyze dialogAnalyze = DialogAnalyze();
 ChannelRow channelRow = ChannelRow();
 const Widget divider = SizedBox(height: 10);
 List<Channel> actChannels = [];
@@ -30,8 +31,8 @@ String newSelectedJsonSettingsFile = "";
 // be displayed in a row.
 const double narrowScreenWidthThreshold = 400;
 
-class ScreenAnalyze extends StatelessWidget {
-  const ScreenAnalyze({super.key});
+class ScreenChannles extends StatelessWidget {
+  const ScreenChannles({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -342,17 +343,6 @@ class _AddChannelButton extends State<AddChannelButton>
     );
   }
 
-  ///
-  /// \brief Open analysis dialog
-  ///
-  void startAnalyzeDialog(BuildContext context) {
-    showDialog<void>(
-        context: context,
-        builder: (_) {
-          return dialogAnalyze;
-        });
-  }
-
   void _onFileSelectionChanged(String newSettingsFile) {
     newSelectedJsonSettingsFile = newSettingsFile;
   }
@@ -471,7 +461,8 @@ class _AddChannelButton extends State<AddChannelButton>
                             width: 60,
                             child: FloatingActionButton(
                               onPressed: () {
-                                startAnalyzeDialog(context);
+                                  homeState?.handleScreenChanged(ScreenSelected.analysis.value);
+
                               },
                               tooltip: "Start analyze",
                               backgroundColor: Colors.green,

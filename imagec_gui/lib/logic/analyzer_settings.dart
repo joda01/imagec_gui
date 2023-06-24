@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:html' as html;
 
 import '../channel/channel_enums.dart';
-import '../dialogs/dialog_analyze.dart';
+import '../screens/screen_analyze.dart';
 import '../screens/screen_channels.dart';
 import '../screens/screen_home.dart';
 

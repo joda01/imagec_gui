@@ -76,16 +76,17 @@ enum ChannelLabels {
   }
 }
 
+///
+/// Preprocessing step
+///
+///
 enum PreprocessingSteps {
   none('none', 'NONE'),
-  cy3('CY3', 'MARGIN_CROP'),
-  cy5('CY5', 'ROLLING_BALL'),
-  cy7('CY7', 'MAXIMUM_INTENSITY_PROJECTION'),
-  dapi('DAPI', 'DECONVOLUTION'),
-  gfp(
-    'GFP',
-    'GFP',
-  );
+  marginCrop('Margin crop', 'MARGIN_CROP'),
+  rollingBall('Rolling ball', 'ROLLING_BALL'),
+  zStack('Z-Stack', 'MAXIMUM_INTENSITY_PROJECTION'),
+  backgroundSubtraction('Background subtraction', 'BACKGROUND_SUBTRACTION'),
+  bluer('Bluer', 'BLUER');
 
   const PreprocessingSteps(this.label, this.value);
   final String label;
@@ -130,7 +131,7 @@ enum ChannelTypeLabels {
     'NUCLEUS',
   ),
   cell('Cell (alpha)', 'CELL'),
-  ev('EV (NA)', 'EV'),
+  ev('Spot (NA)', 'SPOT'),
   background('Background (NA)', 'BACKGROUND'),
   tetraspeck_bead('Tetraspeck Bead (NA)', 'TETRASPECK_BEAD');
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:namer_app/channel/channel_enums.dart';
 
+import '../channel/channel_explicite.dart';
 import '../helper/scroll_syncer.dart';
 import '../screens/screen_channels.dart';
 import '../channel/channel.dart';
@@ -16,7 +17,9 @@ abstract class PreprocessingWidget extends StatelessWidget {
 
   Widget getChild();
 
-  final Channel widget;
+  final ChannelSettingExplicite widget;
+
+  
 
     Widget build(BuildContext context) => Padding(
       padding: const EdgeInsets.all(10),
@@ -24,7 +27,7 @@ abstract class PreprocessingWidget extends StatelessWidget {
         width: 230,
         child: InkWell(
           onTap: () {
-            print("remove preprocessing");
+            widget.settings.removePreprocessingStep(this);
           },
           hoverColor: Theme.of(context).colorScheme.onInverseSurface,
           focusColor: Theme.of(context).colorScheme.onInverseSurface,

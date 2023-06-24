@@ -28,19 +28,20 @@ Future<void> startAnalyze(String analyzeSettings) async {
 /// \brief Stop analyze
 ///
 Future<void> stopAnalyze() async {
-  final url = Uri.parse('$BASE_URL/api/v1/stop');
-
-  final headers = {'Content-Type': 'application/json'};
-
-  final response = await http.get(url, headers: headers);
-
-  if (response.statusCode == 200) {
-    // Request successful, parse the response
-    final responseData = jsonDecode(response.body);
-    print(responseData);
-  } else {
-    // Request failed, handle the error
-    print('Request failed with status: ${response.statusCode}');
+  try {
+    final url = Uri.parse('$BASE_URL/api/v1/stop');
+    final headers = {'Content-Type': 'application/json'};
+    final response = await http.get(url, headers: headers);
+    if (response.statusCode == 200) {
+      // Request successful, parse the response
+      final responseData = jsonDecode(response.body);
+      print(responseData);
+    } else {
+      // Request failed, handle the error
+      print('Request failed with status: ${response.statusCode}');
+    }
+  } catch (ex) {
+    print(ex);
   }
 }
 
@@ -48,20 +49,19 @@ Future<void> stopAnalyze() async {
 /// \brief Start analyze
 ///
 Future<Map<String, dynamic>> getAnalyzeStatus() async {
-  final url = Uri.parse('$BASE_URL/api/v1/getstate');
-
-  final headers = {'Content-Type': 'application/json'};
-
-  final response = await http.get(url, headers: headers);
-
-  if (response.statusCode == 200) {
-    // Request successful, parse the response
-    final responseData = jsonDecode(response.body);
-    return responseData;
+  try {
+    final url = Uri.parse('$BASE_URL/api/v1/getstate');
+    final headers = {'Content-Type': 'application/json'};
+    final response = await http.get(url, headers: headers);
+    if (response.statusCode == 200) {
+      // Request successful, parse the response
+      final responseData = jsonDecode(response.body);
+      return responseData;
+    }
+  } catch (ex) {
+    //print(ex);
   }
-  throw Exception(response.statusCode);
-  // Request failed, handle the error
-  //print('Request failed with status: ${response.statusCode}');
+  return Map<String, dynamic>();
 }
 
 ///

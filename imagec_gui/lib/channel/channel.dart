@@ -25,6 +25,7 @@ abstract class Channel extends StatefulWidget {
   ChannelLabels selectedChannelLabel = ChannelLabels.cy3;
   AIModel selectedAIModel = AIModel.common;
   bool useAI = false;
+  TextEditingController selectedChannelName = TextEditingController();
   ThresholdMethod selectedThresholdMethod = ThresholdMethod.manual;
   TextEditingController selectedMinThreshold = TextEditingController();
   TextEditingController selectedMinProbability = TextEditingController()
@@ -161,12 +162,15 @@ class RangeTextInputFormatter extends TextInputFormatter {
 }
 
 class CustomDivider extends StatelessWidget {
-  CustomDivider({required this.text, this.padding = 10});
+  CustomDivider(
+      {required this.text, this.paddingTop = 10, this.paddingBottom = 10});
   final String text;
-  final double padding;
+  final double paddingTop;
+  final double paddingBottom;
+
   @override
   Widget build(BuildContext context) => Padding(
-      padding: EdgeInsets.all(padding),
+      padding: EdgeInsets.fromLTRB(10, paddingTop, 10, paddingBottom),
       child: SizedBox(
         height: 15.0,
         width: 230,
@@ -201,31 +205,6 @@ class RemoveChannelWidget extends StatelessWidget {
             backgroundColor: Theme.of(context).colorScheme.error),
       ));
 }
-
-class AddPreprocessingWidget extends StatelessWidget {
-  AddPreprocessingWidget({required this.widget});
-
-  final Channel widget;
-  @override
-  Widget build(BuildContext context) => Padding(
-      padding: const EdgeInsets.all(20),
-      child: FilledButton(
-        // co:Theme.of(context).colorScheme.onError,
-
-        onPressed: () {
-          actChannels.remove(widget);
-          widget.parent.setState(() {});
-          addChannelButtonStateWidget?.setState(() {});
-        },
-        child: Wrap(children: [
-          const Icon(Icons.add),
-          const Text(' Add preprocessing step')
-        ]),
-        //style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.onSecondary),
-      ));
-}
-
-
 
 class PreviewButton extends StatelessWidget {
   PreviewButton({required this.widget});

@@ -106,27 +106,59 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
 
   List<PreprocessingWidget> preprocessingSteps = [];
 
+    ///
+    /// Adds an preprocessing step
+    ///
+    void addPreprocessingStep(PreprocessingSteps preprocessingStep) {
+      setState(() {
+        switch (preprocessingStep) {
+          case PreprocessingSteps.marginCrop:
+            preprocessingSteps.add(
+              PreprocessingWidgetMarginCrop(
+                widget: widget,
+              ),
+            );
+            break;
+          case PreprocessingSteps.rollingBall:
+            preprocessingSteps.add(
+              PreprocessingRollingBall(
+                widget: widget,
+              ),
+            );
+            break;
+          case PreprocessingSteps.zStack:
+            preprocessingSteps.add(
+              PreprocessingZStack(
+                widget: widget,
+              ),
+            );
+            break;
+          case PreprocessingSteps.bluer:
+            preprocessingSteps.add(
+              PreprocessingRollingBall(
+                widget: widget,
+              ),
+            );
+            break;
+
+          default:
+            break;
+        }
+      });
+    }
+
+    ///
+    /// Remove preprocessing step
+    ///
+    void removePreprocessingStep(PreprocessingWidget wdgt) {
+      setState(() {
+        preprocessingSteps.remove(wdgt);
+      });
+    }
+
+
   @override
   Widget build(BuildContext context) {
-    preprocessingSteps.insert(
-      0,
-      PreprocessingWidgetMarginCrop(
-        widget: widget,
-      ),
-    );
-    preprocessingSteps.insert(
-      0,
-      PreprocessingZStack(
-        widget: widget,
-      ),
-    );
-    preprocessingSteps.insert(
-      0,
-      PreprocessingRollingBall(
-        widget: widget,
-      ),
-    );
-
     final textTheme = Theme.of(context)
         .textTheme
         .apply(displayColor: Theme.of(context).colorScheme.onSurface);
@@ -168,10 +200,60 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
     });
 
     void _hasScrolled() {
-      widget.scroll.setPosition(controllervertical);
+      //widget.scroll.setPosition(controllervertical);
     }
 
     controllervertical.addListener(_hasScrolled);
+
+
+
+    ///
+    /// Show add preprocessing dialog
+    ///
+    void showAddPreprocessingStepDialog() {
+      ///
+      /// Channel labels
+      final TextEditingController preprocessingStepController =
+          TextEditingController();
+      final List<DropdownMenuEntry<PreprocessingSteps>>
+          availablePreprocessingSteps =
+          <DropdownMenuEntry<PreprocessingSteps>>[];
+      for (final PreprocessingSteps entry in PreprocessingSteps.values) {
+        availablePreprocessingSteps.add(DropdownMenuEntry<PreprocessingSteps>(
+            value: entry, label: entry.label));
+      }
+
+      PreprocessingSteps? selectedPreprocessingStep = PreprocessingSteps.none;
+
+      showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Add preprocessing step'),
+          content: DropdownMenu<PreprocessingSteps>(
+            width: 230,
+            initialSelection: PreprocessingSteps.none,
+            controller: preprocessingStepController,
+            leadingIcon: const Icon(Icons.layers_outlined),
+            label: const Text('Function'),
+            dropdownMenuEntries: availablePreprocessingSteps,
+            onSelected: (value) => selectedPreprocessingStep = value,
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Dismiss'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            FilledButton(
+              child: const Text('Okay'),
+              onPressed: () {
+                addPreprocessingStep(selectedPreprocessingStep!);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
+    }
 
     return Scrollbar(
         thickness: 10,
@@ -199,6 +281,25 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                           style: textTheme.titleLarge,
                         )),
 
+                    // Channel name
+                    Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: SizedBox(
+                          width: 230,
+                          child: TextField(
+                            obscureText: false,
+                            controller: widget.selectedChannelName,
+                            keyboardType:
+                                TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.text_fields),
+                              border: OutlineInputBorder(),
+                              labelText: 'Name',
+                            ),
+                          ),
+                        )),
+
+                    // Channel selector
                     Padding(
                         padding: const EdgeInsets.all(10),
                         child: SizedBox(width: 220, child: widget.chSelector)),
@@ -225,11 +326,27 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                     //
                     // Divider
                     //
-                    CustomDivider(text: 'Preprocessing'),
+                    CustomDivider(
+                      text: 'Preprocessing',
+                      paddingBottom: 25,
+                    ),
                     Column(
                       children: preprocessingSteps,
                     ),
-                    AddPreprocessingWidget(widget: widget),
+
+                    //
+                    // Add preprocessing step buttin
+                    //
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 20, 0, 10),
+                      child: FilledButton(
+                        onPressed: () {
+                          showAddPreprocessingStepDialog();
+                        },
+                        child: Wrap(
+                            children: [const Icon(Icons.add), const Text('')]),
+                      ),
+                    ),
 
                     //
                     // Divider

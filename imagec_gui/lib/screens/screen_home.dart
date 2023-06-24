@@ -75,7 +75,7 @@ class ScreenHome extends StatelessWidget {
 ///
 /// Get started button pressed
 void getStartedPressed() {
-  homeState?.handleScreenChanged(ScreenSelected.analyze.value);
+  homeState?.handleScreenChanged(ScreenSelected.channels.value);
 }
 
 ///
