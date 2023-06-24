@@ -240,6 +240,7 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
               child: const Text('Okay'),
               onPressed: () {
                 for (final step in preprocessingSelector.getSelectedChannel()) {
+                  //print("S" + step.label);
                   addPreprocessingStep(step);
                 }
                 Navigator.of(context).pop();

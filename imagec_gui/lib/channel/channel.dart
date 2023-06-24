@@ -46,6 +46,13 @@ abstract class Channel extends StatefulWidget {
     return (min, max);
   }
 
+  String getNameAndIndex() {
+    return selectedChannelName.text +
+        " (" +
+        chSelector.getSelectedChannelName() +
+        ")";
+  }
+
   @protected
   Object jsonObjectBuilder() {
     final (minParticle, maxParticle) = getMinMaxParticleSize();
@@ -245,6 +252,14 @@ class ChannelSelector extends StatefulWidget {
     }
   }
 
+ String getSelectedChannelName() {
+    if (filters.length > 0) {
+      return filters.first.label;
+    } else {
+      return "";
+    }
+  }
+
   void setSelectedChannel(ChannelIndex ch) {
     filters.clear();
     filters.add(ch);
@@ -302,7 +317,7 @@ class PreprocessingstepSelector extends StatefulWidget {
   Set<PreprocessingSteps> filters = <PreprocessingSteps>{};
 
   Set<PreprocessingSteps> getSelectedChannel() {
-   return filters;
+    return filters;
   }
 
   void setSelectedChannel(PreprocessingSteps ch) {

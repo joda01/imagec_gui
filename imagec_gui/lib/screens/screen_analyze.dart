@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:namer_app/screens/screen_channels.dart';
 import '../channel/channel.dart';
 import '../channel/channel_enums.dart';
 import '../logic/analyzer_settings.dart';
@@ -16,7 +17,7 @@ PostProcessingScript? selectedPostProcessingScript =
     PostProcessingScript.liner_regression;
 
 TextEditingController pipelinesController = TextEditingController();
-Pipelines? selectedPipeline = Pipelines.count;
+Functions? selectedPipeline = Functions.count;
 
 class ScreenAnalysis extends StatefulWidget {
   @override
@@ -39,8 +40,12 @@ class _ScreenAnalysis extends State<ScreenAnalysis>
 
   ///
   /// Dropdown entries
-  final List<DropdownMenuEntry<Pipelines>> pipelinesentries =
-      <DropdownMenuEntry<Pipelines>>[];
+  final List<DropdownMenuEntry<Functions>> pipelinesentries =
+      <DropdownMenuEntry<Functions>>[];
+
+  final List<DropdownMenuEntry<Channel>> dropDownChannels =
+      <DropdownMenuEntry<Channel>>[];
+
 
   final List<DropdownMenuEntry<PostProcessingScript>>
       PostProcessingScriptEntries = <DropdownMenuEntry<PostProcessingScript>>[];
@@ -159,10 +164,11 @@ class _ScreenAnalysis extends State<ScreenAnalysis>
   @override
   void initState() {
     startTimer();
-    for (final Pipelines entry in Pipelines.values) {
+    for (final Functions entry in Functions.values) {
       pipelinesentries
-          .add(DropdownMenuEntry<Pipelines>(value: entry, label: entry.label));
+          .add(DropdownMenuEntry<Functions>(value: entry, label: entry.label));
     }
+updateChannelSelections();
 
     for (final PostProcessingScript entry in PostProcessingScript.values) {
       PostProcessingScriptEntries.add(DropdownMenuEntry<PostProcessingScript>(
@@ -171,6 +177,16 @@ class _ScreenAnalysis extends State<ScreenAnalysis>
     updateStatus();
     super.initState();
   }
+
+
+  void updateChannelSelections()
+  {
+    for (final Channel entry in actChannels) {
+      dropDownChannels
+          .add(DropdownMenuEntry<Channel>(value: entry, label: entry.getNameAndIndex()));
+    }
+  }
+
 
   @override
   void dispose() {
@@ -204,7 +220,29 @@ class _ScreenAnalysis extends State<ScreenAnalysis>
                               child: Padding(
                                   padding:
                                       const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                                  child: DropdownMenu<Pipelines>(
+                                  child: DropdownMenu<Channel>(
+                                    enabled: _state == AnalyzeState.STOPPED
+                                        ? true
+                                        : false,
+                                    //width: 330,
+                                   // initialSelection: dropDownChannels,
+                                    controller: pipelinesController,
+                                    leadingIcon:
+                                        const Icon(Icons.functions_outlined),
+                                    label: const Text('Function'),
+                                    helperText: "Select analyzes function.",
+                                    dropdownMenuEntries: dropDownChannels,
+                                    onSelected: (value) =>
+                                        //selectedPipeline = value,
+                                        print("")
+                                  ))),
+                          
+                                                    SizedBox(
+                              //width: 350,
+                              child: Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                  child: DropdownMenu<Functions>(
                                     enabled: _state == AnalyzeState.STOPPED
                                         ? true
                                         : false,
@@ -213,12 +251,17 @@ class _ScreenAnalysis extends State<ScreenAnalysis>
                                     controller: pipelinesController,
                                     leadingIcon:
                                         const Icon(Icons.functions_outlined),
-                                    label: const Text('Pipeline'),
-                                    helperText: "Select analyzes pipeline.",
+                                    label: const Text('Function'),
+                                    helperText: "Select analyzes function.",
                                     dropdownMenuEntries: pipelinesentries,
                                     onSelected: (value) =>
                                         selectedPipeline = value,
                                   ))),
+                          
+                          
+                          
+                          
+                          
                           SizedBox(
                               //width: 350,
                               child: Padding(

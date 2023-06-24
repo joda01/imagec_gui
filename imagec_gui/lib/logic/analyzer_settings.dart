@@ -39,7 +39,7 @@ String generateAnalyzeSettings(String pipeline, String inputFolder) {
 ///
 void loadFromAnalyzeSettings(dynamic settings) {
   channelRow.loadChannelSettings(settings);
-  selectedPipeline = Pipelines.stringToEnum(settings["pipeline"] as String);
+  selectedPipeline = Functions.stringToEnum(settings["pipeline"] as String);
 }
 
 ///

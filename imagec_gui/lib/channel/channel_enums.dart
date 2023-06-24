@@ -9,25 +9,24 @@ State? addChannelButtonStateWidget;
 ///
 /// Enum pipelines
 ///
-enum Pipelines {
-  count('Count', 'COUNT'),
+enum Functions {
+  count('Coloc', 'COLOC'),
   coloc(
-    'Coloc',
-    'COLOC',
-  ),
-  inCellColoc('In cell coloc', 'COLOC_IN_CELL');
+    'Intersection',
+    'INTERSECTION',
+  );
 
-  const Pipelines(this.label, this.value);
+  const Functions(this.label, this.value);
   final String label;
   final String value;
 
-  static Pipelines stringToEnum(String inString) {
-    for (final enumI in Pipelines.values) {
+  static Functions stringToEnum(String inString) {
+    for (final enumI in Functions.values) {
       if (enumI.value == inString) {
         return enumI;
       }
     }
-    return Pipelines.count;
+    return Functions.count;
   }
 }
 
@@ -81,11 +80,13 @@ enum ChannelLabels {
 ///
 ///
 enum PreprocessingSteps {
-  none('none', 'NONE', Icon(Icons.not_interested_outlined)),
   marginCrop('Margin crop', 'MARGIN_CROP', Icon(Icons.crop_outlined)),
+  zStack('Z-Stack', 'MAXIMUM_INTENSITY_PROJECTION',
+      Icon(Icons.filter_none_outlined)),
+  backgroundSubtraction('Background sub.', 'BACKGROUND_SUBTRACTION',
+      Icon(Icons.wallpaper_outlined)),
   rollingBall('Rolling ball', 'ROLLING_BALL', Icon(Icons.blur_on_sharp)),
-  zStack('Z-Stack', 'MAXIMUM_INTENSITY_PROJECTION', Icon(Icons.filter_none_outlined)),
-  backgroundSubtraction('Background sub.', 'BACKGROUND_SUBTRACTION', Icon(Icons.wallpaper_outlined)),
+
   bluer('Bluer', 'BLUER', Icon(Icons.blur_linear_outlined));
 
   const PreprocessingSteps(this.label, this.value, this.icon);
@@ -99,7 +100,7 @@ enum PreprocessingSteps {
         return label;
       }
     }
-    return PreprocessingSteps.none;
+    return PreprocessingSteps.zStack;
   }
 }
 
