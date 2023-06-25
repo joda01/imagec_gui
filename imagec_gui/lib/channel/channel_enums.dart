@@ -103,10 +103,11 @@ enum ZstackOptions {
 /// Preprocessing step
 ///
 ///
+///
+
+const String Z_STACK_LABEL = "Z_STACK";
 enum PreprocessingSteps {
   marginCrop('Margin crop', 'MARGIN_CROP', Icon(Icons.crop_outlined)),
-  zStack('Z-Stack', 'MAXIMUM_INTENSITY_PROJECTION',
-      Icon(Icons.filter_none_outlined)),
   backgroundSubtraction('Background sub.', 'BACKGROUND_SUBTRACTION',
       Icon(Icons.wallpaper_outlined)),
   rollingBall('Rolling ball', 'ROLLING_BALL', Icon(Icons.blur_on_sharp)),
@@ -124,7 +125,7 @@ enum PreprocessingSteps {
         return label;
       }
     }
-    return PreprocessingSteps.zStack;
+    return PreprocessingSteps.marginCrop;
   }
 }
 

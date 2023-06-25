@@ -12,7 +12,8 @@ class ChannelSettingExplicite extends Channel {
       {super.key,
       required super.scroll,
       required super.parent,
-      required super.channelType});
+      required super.channelType}) {
+  }
 
   final _ChannelSettingExplicite settings = _ChannelSettingExplicite();
 
@@ -28,66 +29,86 @@ class ChannelSettingExplicite extends Channel {
   /// Load channel settings from json object
   ///
   void loadChannelSettings(dynamic channel) {
+    //
+    // Common
+    //
     super
         .chSelector
         .setSelectedChannel(ChannelIndex.toIndex(channel["index"] as int));
     super.selectedChannelLabel =
         ChannelLabels.stringToEnum(channel["label"] as String);
-    super.useAI = channel["detection_mode"] as String == "AI" ? true : false;
+    super.selectedChannelName.text = channel["name"] as String;
 
+    //
+    // Load preprocessing steps
+    //
+    final preprocessingSteps = channel["preprocessing"] as List<dynamic>;
+    for (final dynamic preprocessing in preprocessingSteps) {
+      if (preprocessing["function"] as String == Z_STACK_LABEL) {
+        super.preprocessingZStack.fromJsonObject(preprocessing);
+      } else {
+        final preWidget = addPreprocessingStep(PreprocessingSteps.stringToEnum(
+            preprocessing["function"] as String));
+        preWidget.fromJsonObject(preprocessing);
+      }
+    }
+
+    //
+    // Detection
+    //
+    final detectionDynamic = channel["detection"];
+
+    super.useAI = detectionDynamic["mode"] as String == "AI" ? true : false;
     // Threshold settings
-    if (channel.containsKey("thresholds")) {
+    if (detectionDynamic.containsKey("threshold")) {
       super.selectedThresholdMethod = ThresholdMethod.stringToEnum(
-          channel["thresholds"]["threshold_algorithm"]);
+          detectionDynamic["threshold"]["threshold_algorithm"]);
 
       double minThreshodl =
-          ((channel["thresholds"]["threshold_min"] as double) * 100);
+          ((detectionDynamic["threshold"]["threshold_min"] as double) * 100);
       if (minThreshodl >= 0) {
         super.selectedMinThreshold.text = minThreshodl.toString();
       }
     }
 
     // AI settings
-    if (channel.containsKey("ai_settings")) {
+    if (detectionDynamic.containsKey("ai")) {
       double minProbability =
-          ((channel["ai_settings"]["probability_min"] as double) * 100);
+          ((detectionDynamic["ai"]["probability_min"] as double) * 100);
       if (minProbability >= 0) {
         super.selectedMinProbability.text = minProbability.toString();
       }
 
       super.selectedAIModel =
-          AIModel.stringToEnum(channel["ai_settings"]["model_name"] as String);
+          AIModel.stringToEnum(detectionDynamic["ai"]["model_name"] as String);
     }
 
-    double minCircularity = ((channel["min_circularity"] as double) * 100);
+    //
+    // Filtering
+    //
+    final filterDynamic = channel["filter"];
+    double minCircularity =
+        ((filterDynamic["min_circularity"] as double) * 100);
     if (minCircularity >= 0) {
       super.selectedMinCircularity.text = minCircularity.toString();
     }
 
-    double snapAreaSize = ((channel["snap_area_size"] as double));
+    double snapAreaSize = ((filterDynamic["snap_area_size"] as double));
     if (snapAreaSize >= 0) {
       super.selectedSnapArea.text = snapAreaSize.toString();
     }
 
-    double marginCrop = ((channel["margin_crop"] as double));
+    double marginCrop = ((filterDynamic["margin_crop"] as double));
     if (marginCrop >= 0) {
       super.selectedMarginCrop.text = marginCrop.toString();
     }
 
-    double minParticleSize = ((channel["min_particle_size"] as double));
-    double maxParticleSize = ((channel["max_particle_size"] as double));
+    double minParticleSize = ((filterDynamic["min_particle_size"] as double));
+    double maxParticleSize = ((filterDynamic["max_particle_size"] as double));
 
     if (minParticleSize >= 0 && maxParticleSize >= 0) {
       super.selectedParticleSizeRange.text =
           minParticleSize.toString() + "-" + maxParticleSize.toString();
-    }
-
-    // Load preprocessing steps
-    final preprocessingSteps = channel["preprocessing"] as List<dynamic>;
-    for (final dynamic preprocessing in preprocessingSteps) {
-      final preWidget = addPreprocessingStep(
-          PreprocessingSteps.stringToEnum(preprocessing["function"] as String));
-      preWidget.fromJsonObject(preprocessing);
     }
 
     //settings.thresholdMethodController.selection =
@@ -106,21 +127,24 @@ class ChannelSettingExplicite extends Channel {
 
     switch (preprocessingStep) {
       case PreprocessingSteps.marginCrop:
-        widgetNew = PreprocessingWidgetMarginCrop(parentChannelWidget: this,);
-
+        widgetNew = PreprocessingWidgetMarginCrop(
+          parentChannelWidget: this,
+        );
         break;
       case PreprocessingSteps.rollingBall:
-        widgetNew = PreprocessingRollingBall(parentChannelWidget: this,);
-        break;
-      case PreprocessingSteps.zStack:
-        widgetNew = PreprocessingZStack(parentChannelWidget: this,);
+        widgetNew = PreprocessingRollingBall(
+          parentChannelWidget: this,
+        );
         break;
       case PreprocessingSteps.bluer:
-        widgetNew = PreprocessingRollingBall(parentChannelWidget: this,);
+        widgetNew = PreprocessingRollingBall(
+          parentChannelWidget: this,
+        );
         break;
-
       default:
-        widgetNew = PreprocessingWidgetMarginCrop(parentChannelWidget: this,);
+        widgetNew = PreprocessingWidgetMarginCrop(
+          parentChannelWidget: this,
+        );
         break;
     }
     preprocessingSteps.add(widgetNew);
@@ -132,16 +156,16 @@ class ChannelSettingExplicite extends Channel {
 ///
 /// Title card
 class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
   ////////////////////////////////////////////////
   final TextEditingController chLabelsController = TextEditingController();
   final TextEditingController thresholdMethodController =
       TextEditingController();
   final TextEditingController aiModelController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   ///
   /// Remove preprocessing step
@@ -325,12 +349,13 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                       text: 'Preprocessing',
                       paddingBottom: 25,
                     ),
+                    widget.preprocessingZStack,
                     Column(
                       children: widget.preprocessingSteps,
                     ),
 
                     //
-                    // Add preprocessing step buttin
+                    // Add preprocessing step button
                     //
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 20, 0, 10),

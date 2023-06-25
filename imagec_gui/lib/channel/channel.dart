@@ -5,6 +5,7 @@ import 'package:namer_app/channel/channel_enums.dart';
 
 import '../helper/scroll_syncer.dart';
 import '../preprocessing/preprocessing.dart';
+import '../preprocessing/preprocessing_z_stack.dart';
 import '../screens/screen_channels.dart';
 
 ///
@@ -15,7 +16,7 @@ abstract class Channel extends StatefulWidget {
       {super.key,
       required this.scroll,
       required this.parent,
-      required this.channelType});
+      required this.channelType}) {}
 
   final ScrollSyncer scroll;
   final State parent;
@@ -40,6 +41,8 @@ abstract class Channel extends StatefulWidget {
     ..text = "5-999999";
 
   List<PreprocessingWidget> preprocessingSteps = [];
+
+  final PreprocessingZStack preprocessingZStack = PreprocessingZStack();
 
   Object toJsonObject();
 
@@ -85,6 +88,7 @@ abstract class Channel extends StatefulWidget {
     } catch (ex) {}
 
     List<Object> preprocessingStepObjects = [];
+    preprocessingStepObjects.add(preprocessingZStack.toJsonObject());
     for (final preprocessingStep in preprocessingSteps) {
       preprocessingStepObjects.add(preprocessingStep.toJsonObject());
     }
@@ -93,25 +97,27 @@ abstract class Channel extends StatefulWidget {
       "index": chSelector.getSelectedChannel(),
       "type": channelType.value,
       "label": selectedChannelLabel.value,
-      "preprocessing":preprocessingStepObjects,
-      
-      
-      "detection_mode": true == useAI ? "AI" : "THRESHOLD",
-      "thresholds": {
-        "threshold_algorithm": selectedThresholdMethod.value,
-        "threshold_min": thresholdMin,
-        "threshold_max": 1,
+      "name": selectedChannelName.text,
+      "preprocessing": preprocessingStepObjects,
+      "detection": {
+        "mode": true == useAI ? "AI" : "THRESHOLD",
+        "threshold": {
+          "threshold_algorithm": selectedThresholdMethod.value,
+          "threshold_min": thresholdMin,
+          "threshold_max": 1,
+        },
+        "ai": {
+          "model_name": selectedAIModel.value,
+          "probability_min": probability_min
+        },
       },
-      "ai_settings": {
-        "model_name": selectedAIModel.value,
-        "probability_min": probability_min
-      },
-      "min_particle_size": minParticle,
-      "max_particle_size": maxParticle,
-      "min_circularity": min_circularity,
-      "snap_area_size": snap_area_size,
-      "margin_crop": margin_crop,
-      "zprojection": "MAX",
+      "filter": {
+        "min_particle_size": minParticle,
+        "max_particle_size": maxParticle,
+        "min_circularity": min_circularity,
+        "snap_area_size": snap_area_size,
+        "margin_crop": margin_crop,
+      }
     };
     return channelSettings;
   }
