@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:namer_app/channel/channel_enums.dart';
 
 import '../helper/scroll_syncer.dart';
+import '../preprocessing/preprocessing.dart';
 import '../screens/screen_channels.dart';
 
 ///
@@ -37,6 +38,8 @@ abstract class Channel extends StatefulWidget {
     ..text = "0";
   TextEditingController selectedParticleSizeRange = TextEditingController()
     ..text = "5-999999";
+
+  List<PreprocessingWidget> preprocessingSteps = [];
 
   Object toJsonObject();
 
@@ -81,10 +84,18 @@ abstract class Channel extends StatefulWidget {
       margin_crop = double.parse(selectedMarginCrop.text);
     } catch (ex) {}
 
+    List<Object> preprocessingStepObjects = [];
+    for (final preprocessingStep in preprocessingSteps) {
+      preprocessingStepObjects.add(preprocessingStep.toJsonObject());
+    }
+
     final channelSettings = {
       "index": chSelector.getSelectedChannel(),
       "type": channelType.value,
       "label": selectedChannelLabel.value,
+      "preprocessing":preprocessingStepObjects,
+      
+      
       "detection_mode": true == useAI ? "AI" : "THRESHOLD",
       "thresholds": {
         "threshold_algorithm": selectedThresholdMethod.value,
@@ -252,7 +263,7 @@ class ChannelSelector extends StatefulWidget {
     }
   }
 
- String getSelectedChannelName() {
+  String getSelectedChannelName() {
     if (filters.length > 0) {
       return filters.first.label;
     } else {

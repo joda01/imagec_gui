@@ -14,13 +14,32 @@ import 'package:namer_app/preprocessing/preprocessing.dart';
 /// Margin crop preprocessing
 ///
 class PreprocessingRollingBall extends PreprocessingWidget {
-  PreprocessingRollingBall({required super.widget});
+  PreprocessingRollingBall({required super.parentChannelWidget});
+
+  TextEditingController rollingBallSize = TextEditingController()
+    ..text = "0";
+
+  @override
+  Object toJsonObject() {
+    final settings = {
+      "function": PreprocessingSteps.rollingBall.value,
+      "value": rollingBallSize.text
+    };
+
+    return settings;
+  }
+
+  @override
+  void fromJsonObject(dynamic data) {
+    rollingBallSize.text = data["value"] as String;
+  }
+
 
   @override
   Widget getChild() {
     return TextField(
       obscureText: false,
-      controller: widget.selectedMarginCrop,
+      controller: rollingBallSize,
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
         RangeTextInputFormatter(min: 0, max: double.infinity)

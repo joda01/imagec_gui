@@ -75,6 +75,30 @@ enum ChannelLabels {
   }
 }
 
+
+///
+/// Z-Stack options labels
+///
+enum ZstackOptions {
+  none('None', 'NONE'),
+  maximumIntensity('Max. intensity', 'MAXIMUM_INTENSITY'),
+  multiDimension('3D image', 'IMAGE_3D');
+
+  const ZstackOptions(this.label, this.value);
+  final String label;
+  final String value;
+
+  static stringToEnum(String str) {
+    for (final label in ZstackOptions.values) {
+      if (label.value == str) {
+        return label;
+      }
+    }
+    return ZstackOptions.none;
+  }
+}
+
+
 ///
 /// Preprocessing step
 ///

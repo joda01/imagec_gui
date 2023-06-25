@@ -82,11 +82,50 @@ class ChannelSettingExplicite extends Channel {
           minParticleSize.toString() + "-" + maxParticleSize.toString();
     }
 
+    // Load preprocessing steps
+    final preprocessingSteps = channel["preprocessing"] as List<dynamic>;
+    for (final dynamic preprocessing in preprocessingSteps) {
+      final preWidget = addPreprocessingStep(
+          PreprocessingSteps.stringToEnum(preprocessing["function"] as String));
+      preWidget.fromJsonObject(preprocessing);
+    }
+
     //settings.thresholdMethodController.selection =
     //    channel["thresholds"]["threshold_algorithm"];
 //
     //print("d");
     //settings.aiModelController.selection = channel["ai_settings"]["model_name"];
+  }
+
+  ///
+  /// Adds an preprocessing step
+  ///
+  PreprocessingWidget addPreprocessingStep(
+      PreprocessingSteps preprocessingStep) {
+    PreprocessingWidget widgetNew;
+
+    switch (preprocessingStep) {
+      case PreprocessingSteps.marginCrop:
+        widgetNew = PreprocessingWidgetMarginCrop(parentChannelWidget: this,);
+
+        break;
+      case PreprocessingSteps.rollingBall:
+        widgetNew = PreprocessingRollingBall(parentChannelWidget: this,);
+        break;
+      case PreprocessingSteps.zStack:
+        widgetNew = PreprocessingZStack(parentChannelWidget: this,);
+        break;
+      case PreprocessingSteps.bluer:
+        widgetNew = PreprocessingRollingBall(parentChannelWidget: this,);
+        break;
+
+      default:
+        widgetNew = PreprocessingWidgetMarginCrop(parentChannelWidget: this,);
+        break;
+    }
+    preprocessingSteps.add(widgetNew);
+
+    return widgetNew;
   }
 }
 
@@ -104,55 +143,12 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
       TextEditingController();
   final TextEditingController aiModelController = TextEditingController();
 
-  List<PreprocessingWidget> preprocessingSteps = [];
-
-  ///
-  /// Adds an preprocessing step
-  ///
-  void addPreprocessingStep(PreprocessingSteps preprocessingStep) {
-    setState(() {
-      switch (preprocessingStep) {
-        case PreprocessingSteps.marginCrop:
-          preprocessingSteps.add(
-            PreprocessingWidgetMarginCrop(
-              widget: widget,
-            ),
-          );
-          break;
-        case PreprocessingSteps.rollingBall:
-          preprocessingSteps.add(
-            PreprocessingRollingBall(
-              widget: widget,
-            ),
-          );
-          break;
-        case PreprocessingSteps.zStack:
-          preprocessingSteps.add(
-            PreprocessingZStack(
-              widget: widget,
-            ),
-          );
-          break;
-        case PreprocessingSteps.bluer:
-          preprocessingSteps.add(
-            PreprocessingRollingBall(
-              widget: widget,
-            ),
-          );
-          break;
-
-        default:
-          break;
-      }
-    });
-  }
-
   ///
   /// Remove preprocessing step
   ///
   void removePreprocessingStep(PreprocessingWidget wdgt) {
     setState(() {
-      preprocessingSteps.remove(wdgt);
+      widget.preprocessingSteps.remove(wdgt);
     });
   }
 
@@ -241,7 +237,10 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
               onPressed: () {
                 for (final step in preprocessingSelector.getSelectedChannel()) {
                   //print("S" + step.label);
-                  addPreprocessingStep(step);
+                  widget.addPreprocessingStep(step);
+                  try {
+                    setState(() {});
+                  } catch (e) {}
                 }
                 Navigator.of(context).pop();
               },
@@ -327,7 +326,7 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                       paddingBottom: 25,
                     ),
                     Column(
-                      children: preprocessingSteps,
+                      children: widget.preprocessingSteps,
                     ),
 
                     //

@@ -9,29 +9,49 @@ import '../channel/channel.dart';
 
 import 'package:namer_app/preprocessing/preprocessing.dart';
 
-
 ///
 /// Margin crop preprocessing
 ///
 class PreprocessingZStack extends PreprocessingWidget {
-  PreprocessingZStack({required super.widget});
+  PreprocessingZStack({required super.parentChannelWidget});
+
+  ZstackOptions selectedZStackOption = ZstackOptions.maximumIntensity;
+  TextEditingController zStackController = TextEditingController()..text = "0";
+
+  @override
+  Object toJsonObject() {
+    final settings = {
+      "function": PreprocessingSteps.zStack.value,
+      "value": selectedZStackOption.value
+    };
+
+    return settings;
+  }
+
+  @override
+  void fromJsonObject(dynamic data) {
+    selectedZStackOption = ZstackOptions.stringToEnum(data["value"] as String);
+  }
 
   @override
   Widget getChild() {
-    return TextField(
-      obscureText: false,
-      controller: widget.selectedMarginCrop,
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-        RangeTextInputFormatter(min: 0, max: double.infinity)
-      ],
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
-      decoration: InputDecoration(
-          prefixIcon: const Icon(Icons.filter_none_outlined),
-          suffixText: 'µm',
-          border: OutlineInputBorder(),
-          labelText: 'Z-Stack',
-          helperText: 'How to handle z-stack'),
+    final List<DropdownMenuEntry<ZstackOptions>> zStackOptionsEntries =
+        <DropdownMenuEntry<ZstackOptions>>[];
+    for (final ZstackOptions entry in ZstackOptions.values) {
+      zStackOptionsEntries.add(
+          DropdownMenuEntry<ZstackOptions>(value: entry, label: entry.label));
+    }
+
+    return DropdownMenu<ZstackOptions>(
+      width: 230,
+      initialSelection: selectedZStackOption,
+      controller: zStackController,
+      leadingIcon: const Icon(Icons.label_outline),
+      label: const Text('Z-Stack options'),
+      dropdownMenuEntries: zStackOptionsEntries,
+      onSelected: (value) {
+        selectedZStackOption = value!;
+      },
     );
   }
 }

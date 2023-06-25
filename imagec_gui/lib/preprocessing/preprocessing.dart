@@ -13,13 +13,14 @@ import '../channel/channel.dart';
 /// Base class for a preprocessing step
 ///
 abstract class PreprocessingWidget extends StatelessWidget {
-  PreprocessingWidget({required this.widget});
+  PreprocessingWidget({required this.parentChannelWidget});
 
   Widget getChild();
 
-  final ChannelSettingExplicite widget;
+  final ChannelSettingExplicite parentChannelWidget;
 
-  
+  Object toJsonObject();
+  void fromJsonObject(dynamic);
 
     Widget build(BuildContext context) => Padding(
       padding: const EdgeInsets.all(10),
@@ -27,7 +28,7 @@ abstract class PreprocessingWidget extends StatelessWidget {
         width: 230,
         child: InkWell(
           onTap: () {
-            widget.settings.removePreprocessingStep(this);
+            parentChannelWidget.settings.removePreprocessingStep(this);
           },
           hoverColor: Theme.of(context).colorScheme.onInverseSurface,
           focusColor: Theme.of(context).colorScheme.onInverseSurface,

@@ -129,7 +129,7 @@ class _ChannelRow extends State<ChannelRow>
         default:
           break;
       }
-      var chSet = ChannelSettingExplicite(
+      final chSet = ChannelSettingExplicite(
         key: UniqueKey(),
         scroll: globalCardControllervertical,
         parent: this,
