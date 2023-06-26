@@ -53,10 +53,7 @@ abstract class Channel extends StatefulWidget {
   }
 
   String getNameAndIndex() {
-    return selectedChannelName.text +
-        " (" +
-        chSelector.getSelectedChannelName() +
-        ")";
+    return "${selectedChannelName.text} (${chSelector.getSelectedChannelName()})";
   }
 
   @protected
@@ -94,10 +91,12 @@ abstract class Channel extends StatefulWidget {
     }
 
     final channelSettings = {
-      "index": chSelector.getSelectedChannel(),
-      "type": channelType.value,
-      "label": selectedChannelLabel.value,
-      "name": selectedChannelName.text,
+      "info":{
+        "index": chSelector.getSelectedChannel(),
+        "type": channelType.value,
+        "label": selectedChannelLabel.value,
+        "name": selectedChannelName.text,
+      },
       "preprocessing": preprocessingStepObjects,
       "detection": {
         "mode": true == useAI ? "AI" : "THRESHOLD",
@@ -215,7 +214,7 @@ class RemoveChannelWidget extends StatelessWidget {
   final Channel widget;
   @override
   Widget build(BuildContext context) => Padding(
-      padding: const EdgeInsets.all(20),
+      padding:const EdgeInsets.fromLTRB(20, 5, 20, 10),
       child: FilledButton(
         // co:Theme.of(context).colorScheme.onError,
 

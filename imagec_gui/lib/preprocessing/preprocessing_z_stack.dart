@@ -51,7 +51,7 @@ class PreprocessingZStack extends StatelessWidget {
           initialSelection: selectedZStackOption,
           controller: zStackController,
           leadingIcon: const Icon(Icons.label_outline),
-          label: const Text('Z-Stack options'),
+          label: const Text('Z-Stack projection'),
           dropdownMenuEntries: zStackOptionsEntries,
           onSelected: (value) {
             selectedZStackOption = value!;

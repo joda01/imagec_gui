@@ -112,8 +112,8 @@ class _ChannelRow extends State<ChannelRow>
       int idx = actChannels.length;
 
       var channelType = ChannelTypeLabels.nucleus;
-      switch (channel["type"] as String) {
-        case "EV":
+      switch (channel["info"]["type"] as String) {
+        case "SPOT":
           channelType = ChannelTypeLabels.ev;
           break;
         case "BACKGROUND":
@@ -140,7 +140,7 @@ class _ChannelRow extends State<ChannelRow>
       actChannels.insert(idx, chSet);
     }
 
-    newSelectedFolder = settings["input_folder"] as String;
+    newSelectedFolder = settings["options"]["input_folder"] as String;
     inputFolder.text = newSelectedFolder;
 
     try {

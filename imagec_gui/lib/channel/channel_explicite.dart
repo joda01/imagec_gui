@@ -34,10 +34,10 @@ class ChannelSettingExplicite extends Channel {
     //
     super
         .chSelector
-        .setSelectedChannel(ChannelIndex.toIndex(channel["index"] as int));
+        .setSelectedChannel(ChannelIndex.toIndex(channel["info"]["index"] as int));
     super.selectedChannelLabel =
-        ChannelLabels.stringToEnum(channel["label"] as String);
-    super.selectedChannelName.text = channel["name"] as String;
+        ChannelLabels.stringToEnum(channel["info"]["label"] as String);
+    super.selectedChannelName.text = channel["info"]["name"] as String;
 
     //
     // Load preprocessing steps
@@ -582,7 +582,7 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                     //
                     // Divider
                     //
-                    CustomDivider(text: ""),
+                    CustomDivider(text: "",paddingBottom: 5),
 
                     RemoveChannelWidget(widget: widget)
                   ])),

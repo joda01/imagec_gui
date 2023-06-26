@@ -81,8 +81,8 @@ enum ChannelLabels {
 ///
 enum ZstackOptions {
   none('None', 'NONE'),
-  maximumIntensity('Max. intensity', 'MAXIMUM_INTENSITY'),
-  multiDimension('3D image', 'IMAGE_3D');
+  maximumIntensity('Max. intensity projection', 'PROJECT_MAX_INTENSITY'),
+  multiDimension('3D projection', 'PROJECT_3D');
 
   const ZstackOptions(this.label, this.value);
   final String label;

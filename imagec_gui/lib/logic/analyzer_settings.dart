@@ -12,19 +12,20 @@ import '../screens/screen_home.dart';
 ///
 String generateAnalyzeSettings(String pipeline, String inputFolder) {
   final mainSettings = {
-    "input_folder": inputFolder,
-    "pipeline": pipeline,
     "channels": [],
-    "min_coloc_factor": 10,
-    "pixel_in_micrometer": 1,
-    "with_control_images": true,
-    "with_detailed_report": true
+    "pipeline": [],
+    "options":{
+      "input_folder": inputFolder,
+      "pixel_in_micrometer": 1,
+      "with_control_images": true,
+      "with_detailed_report": true
+    }
   };
 
   // Iterate over all channels
   for (var ch in actChannels) {
     var obj = ch.toJsonObject() as LinkedHashMap<dynamic, dynamic>;
-    if (obj.containsKey("index")) {
+    if (obj.containsKey("info")) {
       var channels = mainSettings['channels'] as List<dynamic>;
       channels.add(obj);
     }
@@ -39,7 +40,9 @@ String generateAnalyzeSettings(String pipeline, String inputFolder) {
 ///
 void loadFromAnalyzeSettings(dynamic settings) {
   channelRow.loadChannelSettings(settings);
-  selectedPipeline = Functions.stringToEnum(settings["pipeline"] as String);
+  
+  /// \todo Load pipeline
+  //selectedPipeline = Functions.stringToEnum(settings["pipeline"] as String);
 }
 
 ///
