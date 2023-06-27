@@ -48,9 +48,11 @@ class ChannelSettingExplicite extends Channel {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text(''),
-        content: Image(
+        content:
+          img.length > 0 ?
+         Image(
           image: img[0].image,
-        ),
+        ) : Text("..."),
         actions: <Widget>[
           TextButton(
             child: const Text('<<'),
@@ -360,7 +362,8 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
 
                           widget.showPreview(context, prevImage);
                         } catch (ex) {
-                          print("Cannot open ...");
+                          List<Image> empty  =[];
+                          widget.showPreview(context,empty );
                         }
                       },
                       tooltip: "Preview",
