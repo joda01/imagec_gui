@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:namer_app/channel/channel.dart';
+import 'package:namer_app/logic/analyzer_settings.dart';
 import 'package:namer_app/preprocessing/preprocessing_z_stack.dart';
+import '../logic/backend_communication.dart';
 import '../preprocessing/preprocessing_margin_crop.dart';
 import '../preprocessing/preprocessing.dart';
 import '../preprocessing/preprocessing_rolling_ball.dart';
+import '../screens/screen_analyze.dart';
 import 'channel_enums.dart';
 
 class ChannelSettingExplicite extends Channel {
@@ -22,6 +25,50 @@ class ChannelSettingExplicite extends Channel {
   @override
   Object toJsonObject() {
     return super.jsonObjectBuilder();
+  }
+
+  ///
+  /// Show preview
+  ///
+  void showPreview(BuildContext context, List<Image> img) {
+    ///
+    /// Channel labels
+    final TextEditingController channelTypesController =
+        TextEditingController();
+    final List<DropdownMenuEntry<ChannelTypeLabels>> channelTypesEntries =
+        <DropdownMenuEntry<ChannelTypeLabels>>[];
+    for (final ChannelTypeLabels entry in ChannelTypeLabels.values) {
+      channelTypesEntries.add(DropdownMenuEntry<ChannelTypeLabels>(
+          value: entry, label: entry.label));
+    }
+
+    ChannelTypeLabels? selectedChannelType = ChannelTypeLabels.nucleus;
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(''),
+        content: Image(
+          image: img[0].image,
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('<<'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          TextButton(
+            child: const Text('>>'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          FilledButton(
+            child: const Text('Close'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   ///
@@ -304,7 +351,18 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                       style: textTheme.titleMedium,
                     ),
                     FloatingActionButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        try {
+                          final prevImage = await getPreviewImage(
+                              generateAnalyzeSettings(inputFolder.text),
+                              0,
+                              widget.chSelector.getSelectedChannel());
+
+                          widget.showPreview(context, prevImage);
+                        } catch (ex) {
+                          print("Cannot open ...");
+                        }
+                      },
                       tooltip: "Preview",
                       child: const Icon(Icons.visibility),
                       mini: true,

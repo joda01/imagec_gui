@@ -1,5 +1,8 @@
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/material.dart';
+
 
 const String BASE_URL = "http://127.0.0.1:7367";
 
@@ -17,10 +20,37 @@ Future<void> startAnalyze(String analyzeSettings) async {
   if (response.statusCode == 200) {
     // Request successful, parse the response
     final responseData = jsonDecode(response.body);
-    print(responseData);
   } else {
     // Request failed, handle the error
     print('Request failed with status: ${response.statusCode}');
+  }
+}
+
+///
+/// \brief Start analyze
+///
+Future<List<Image>> getPreviewImage(
+    String analyzeSettings, int imgNr, int channel) async {
+  final url = Uri.parse('$BASE_URL/api/v1/preview');
+
+  final headers = {'Content-Type': 'application/json'};
+
+  var content = jsonDecode(analyzeSettings);
+  content["image_nr"] = imgNr;
+  content["channel_idx"] = channel;
+
+  final response =
+      await http.post(url, headers: headers, body: jsonEncode(content));
+
+  if (response.statusCode == 200) {
+    // Request successful, parse the response
+    final responseData = jsonDecode(response.body);
+    final imageBytes = base64Decode(responseData["images"][0]);
+
+    return [Image.memory(imageBytes)];
+  } else {
+    // Request failed, handle the error
+    throw('Request failed with status: ${response.statusCode}');
   }
 }
 

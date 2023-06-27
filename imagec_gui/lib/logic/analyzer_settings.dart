@@ -10,7 +10,7 @@ import '../screens/screen_home.dart';
 ///
 /// Generate analyze settings
 ///
-String generateAnalyzeSettings(String pipeline, String inputFolder) {
+String generateAnalyzeSettings(String inputFolder) {
   final mainSettings = {
     "channels": [],
     "pipeline": [],
@@ -50,7 +50,7 @@ void loadFromAnalyzeSettings(dynamic settings) {
 ///
 Future<void> storeSettingsToLocalFile() async {
   final jsonString =
-      generateAnalyzeSettings(selectedPipeline!.value, inputFolder.text);
+      generateAnalyzeSettings(inputFolder.text);
   html.window.localStorage["IMAGEC_SETTINGS"] = jsonString;
 }
 

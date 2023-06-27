@@ -331,7 +331,6 @@ updateChannelSelections();
                                       _updateState(AnalyzeState.STARTING);
                                       var promise = startAnalyze(
                                           generateAnalyzeSettings(
-                                              selectedPipeline!.value,
                                               inputFolder.text));
                                     } else {
                                       _updateState(AnalyzeState.STOPPING);
