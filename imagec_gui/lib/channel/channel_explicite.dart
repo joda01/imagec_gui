@@ -12,8 +12,7 @@ class ChannelSettingExplicite extends Channel {
       {super.key,
       required super.scroll,
       required super.parent,
-      required super.channelType}) {
-  }
+      required super.channelType}) {}
 
   final _ChannelSettingExplicite settings = _ChannelSettingExplicite();
 
@@ -32,9 +31,8 @@ class ChannelSettingExplicite extends Channel {
     //
     // Common
     //
-    super
-        .chSelector
-        .setSelectedChannel(ChannelIndex.toIndex(channel["info"]["index"] as int));
+    super.chSelector.setSelectedChannel(
+        ChannelIndex.toIndex(channel["info"]["index"] as int));
     super.selectedChannelLabel =
         ChannelLabels.stringToEnum(channel["info"]["label"] as String);
     super.selectedChannelName.text = channel["info"]["name"] as String;
@@ -162,9 +160,22 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
       TextEditingController();
   final TextEditingController aiModelController = TextEditingController();
 
+  String descriptionText = "";
+
   @override
   void initState() {
     super.initState();
+    setDescriptionText(widget.selectedChannelName.text);
+  }
+
+  void setDescriptionText(String value) {
+    setState(() {
+      if (!value.isEmpty) {
+        descriptionText = value;
+      } else {
+        descriptionText = widget.channelType.label;
+      }
+    });
   }
 
   ///
@@ -274,320 +285,356 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
       );
     }
 
-    return Scrollbar(
-        thickness: 10,
-        //thumbVisibility: true,
-        interactive: true,
-        controller: controllervertical,
-        child: SingleChildScrollView(
-            controller: controllervertical,
-            scrollDirection: Axis.vertical,
-            child: Center(
-                child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-              child: Card(
-                margin: EdgeInsets.zero,
-                elevation: 0,
-                color: Theme.of(context).colorScheme.onInverseSurface,
-                child: SizedBox(
-                  // width: width,
-                  child: Center(
-                      child: Column(children: [
-                    Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Text(
-                          widget.channelType.label,
-                          style: textTheme.titleLarge,
-                        )),
-
-                    // Channel name
-                    Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: SizedBox(
-                          width: 230,
-                          child: TextField(
-                            obscureText: false,
-                            controller: widget.selectedChannelName,
-                            keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.text_fields),
-                              border: OutlineInputBorder(),
-                              labelText: 'Name',
-                            ),
-                          ),
-                        )),
-
-                    // Channel selector
-                    Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: SizedBox(width: 220, child: widget.chSelector)),
-
-                    //
-                    // Channel labels
-                    //
-                    Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: DropdownMenu<ChannelLabels>(
-                          width: 230,
-                          initialSelection: widget.selectedChannelLabel,
-                          controller: chLabelsController,
-                          leadingIcon: const Icon(Icons.label_outline),
-                          label: const Text('Label'),
-                          dropdownMenuEntries: channelLabelsEntries,
-                          onSelected: (value) {
-                            setState(() {
-                              widget.selectedChannelLabel = value!;
-                            });
-                          },
-                        )),
-
-                    //
-                    // Divider
-                    //
-                    CustomDivider(
-                      text: 'Preprocessing',
-                      paddingBottom: 25,
+    return SizedBox(
+      width: 250,
+      child: Scaffold(
+        bottomNavigationBar: Padding(
+            padding: const EdgeInsets.fromLTRB(2, 10, 2, 5),
+            child: Card(
+              margin: EdgeInsets.zero,
+              elevation: 0,
+              color: Theme.of(context).colorScheme.onInverseSurface,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      descriptionText,
+                      style: textTheme.titleMedium,
                     ),
-                    widget.preprocessingZStack,
-                    Column(
-                      children: widget.preprocessingSteps,
+                    FloatingActionButton(
+                      onPressed: () {},
+                      tooltip: "Preview",
+                      child: const Icon(Icons.visibility),
+                      mini: true,
                     ),
-
-                    //
-                    // Add preprocessing step button
-                    //
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 20, 0, 10),
-                      child: FilledButton(
-                        onPressed: () {
-                          showAddPreprocessingStepDialog();
-                        },
-                        child: Wrap(
-                            children: [const Icon(Icons.add), const Text('')]),
-                      ),
-                    ),
-
-                    //
-                    // Divider
-                    //
-                    CustomDivider(text: 'Detection'),
-                    Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: SizedBox(
-                          width: 230,
-                          child: SwitchListTile(
-                            title: const Text('Use AI'),
-                            secondary: const Icon(Icons.auto_awesome_outlined),
-                            value: widget.useAI,
-                            onChanged: (value) {
-                              setState(() {
-                                widget.useAI = value;
-                              });
-                            },
-                          ),
-                        )),
-
-                    ////////////////////////////////////////////////////////////////////
-                    //
-                    // Threshold method
-                    //
-                    Visibility(
-                        visible: !widget.useAI,
-                        child: Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: DropdownMenu<ThresholdMethod>(
-                              width: 230,
-                              initialSelection: widget.selectedThresholdMethod,
-                              controller: thresholdMethodController,
-                              leadingIcon: const Icon(Icons.contrast),
-                              label: const Text('Thresholds'),
-                              dropdownMenuEntries: thresholdMethodEntries,
-                              onSelected: (value) {
-                                setState(() {
-                                  widget.selectedThresholdMethod = value!;
-                                });
-                              },
-                            ))),
-                    //
-                    // Minimum threshold
-                    //
-                    Visibility(
-                        visible: !widget.useAI,
-                        child: Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: SizedBox(
-                              width: 230,
-                              child: TextField(
-                                obscureText: false,
-                                controller: widget.selectedMinThreshold,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                      RegExp(r'^\d+\.?\d{0,2}')),
-                                  RangeTextInputFormatter(min: 0, max: 100)
-                                ],
-                                keyboardType: TextInputType.numberWithOptions(
-                                    decimal: true),
-                                decoration: InputDecoration(
-                                    prefixIcon: const Icon(Icons.exposure),
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Min threshold',
-                                    suffixText: '%',
-                                    hintText: '[0-100]',
-                                    helperText:
-                                        'Value of 100% means perfect white.'),
-                              ),
-                            ))),
-
-                    ////////////////////////////////////////////////////////////////////
-                    //
-                    // AI method
-                    //
-                    Visibility(
-                        visible: widget.useAI,
-                        child: Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: DropdownMenu<AIModel>(
-                              width: 230,
-                              initialSelection: widget.selectedAIModel,
-                              controller: aiModelController,
-                              leadingIcon: const Icon(Icons.hub_outlined),
-                              label: const Text('AI model'),
-                              dropdownMenuEntries: aiModelEntries,
-                              onSelected: (value) {
-                                widget.selectedAIModel = value!;
-                              },
-                            ))),
-                    //
-                    // Minimum probability
-                    //
-                    Visibility(
-                        visible: widget.useAI,
-                        child: Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: SizedBox(
-                              width: 230,
-                              child: TextField(
-                                obscureText: false,
-                                controller: widget.selectedMinProbability,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                      RegExp(r'^\d+\.?\d{0,2}')),
-                                  RangeTextInputFormatter(min: 0, max: 100)
-                                ],
-                                keyboardType: TextInputType.numberWithOptions(
-                                    decimal: true),
-                                decoration: InputDecoration(
-                                    prefixIcon: const Icon(Icons.percent),
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Min probability',
-                                    suffixText: '%',
-                                    hintText: '[0-100]',
-                                    helperText:
-                                        'Minimum probability to accept a finding.'),
-                              ),
-                            ))),
-
-                    //
-                    // Divider
-                    //
-                    CustomDivider(
-                      text: 'Filtering',
-                    ),
-
-                    //
-                    // Minimum circularity
-                    //
-                    Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: SizedBox(
-                          width: 230,
-                          child: TextField(
-                            obscureText: false,
-                            controller: widget.selectedMinCircularity,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                  RegExp(r'^\d+\.?\d{0,2}')),
-                              RangeTextInputFormatter(min: 0, max: 100)
-                            ],
-                            keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
-                            decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.hexagon_outlined),
-                                suffixText: '%',
-                                border: OutlineInputBorder(),
-                                labelText: 'Min. circularity',
-                                hintText: '[0-100]',
-                                helperText:
-                                    'Value of 100% means perfect circle.'),
-                          ),
-                        )),
-
-                    //
-                    // Particle size
-                    //
-                    Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: SizedBox(
-                          width: 230,
-                          child: TextField(
-                            obscureText: false,
-                            controller: widget.selectedParticleSizeRange,
-                            inputFormatters: [
-                              CheckForNonEmptyTextField(
-                                  regex:
-                                      RegExp(r'^\d+\.?\d{0,2}-\d+\.?\d{0,2}')),
-                              FilteringTextInputFormatter.allow(
-                                  RegExp(r'^\d+\.?\d{0,2}-\d+\.?\d{0,2}')),
-                            ],
-                            keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
-                            decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.all_out_outlined),
-                                border: OutlineInputBorder(),
-                                labelText: 'Particle size range',
-                                suffixText: 'µm²',
-                                hintText: '[min] - [max]',
-                                helperText: 'Particle size range.'),
-                          ),
-                        )),
-
-                    //
-                    // Snap area
-                    //
-                    Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: SizedBox(
-                          width: 230,
-                          child: TextField(
-                            obscureText: false,
-                            controller: widget.selectedSnapArea,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                  RegExp(r'^\d+\.?\d{0,2}')),
-                              RangeTextInputFormatter(
-                                  min: 0, max: double.infinity)
-                            ],
-                            keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
-                            decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.adjust),
-                                suffixText: 'µm',
-                                border: OutlineInputBorder(),
-                                labelText: 'Snap area diameter',
-                                helperText: 'Snap area diameter'),
-                          ),
-                        )),
-
-                    //
-                    // Divider
-                    //
-                    CustomDivider(text: "",paddingBottom: 5),
-
-                    RemoveChannelWidget(widget: widget)
-                  ])),
+                  ],
                 ),
               ),
-            ))));
+            )),
+        body: Scrollbar(
+            thickness: 10,
+            //thumbVisibility: true,
+            interactive: true,
+            controller: controllervertical,
+            child: SingleChildScrollView(
+                controller: controllervertical,
+                scrollDirection: Axis.vertical,
+                child: Center(
+                    child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    elevation: 0,
+                    color: Theme.of(context).colorScheme.onInverseSurface,
+                    child: SizedBox(
+                      // width: width,
+                      child: Center(
+                          child: Column(children: [
+                        // Channel name
+                        Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: SizedBox(
+                              width: 230,
+                              child: TextField(
+                                onChanged: (value) {
+                                  setDescriptionText(value);
+                                },
+                                obscureText: false,
+                                controller: widget.selectedChannelName,
+                                keyboardType: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                decoration: InputDecoration(
+                                  prefixIcon: const Icon(Icons.text_fields),
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Name',
+                                ),
+                              ),
+                            )),
+
+                        // Channel selector
+                        Padding(
+                            padding: const EdgeInsets.all(10),
+                            child:
+                                SizedBox(width: 220, child: widget.chSelector)),
+
+                        //
+                        // Channel labels
+                        //
+                        Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: DropdownMenu<ChannelLabels>(
+                              width: 230,
+                              initialSelection: widget.selectedChannelLabel,
+                              controller: chLabelsController,
+                              leadingIcon: const Icon(Icons.label_outline),
+                              label: const Text('Label'),
+                              dropdownMenuEntries: channelLabelsEntries,
+                              onSelected: (value) {
+                                setState(() {
+                                  widget.selectedChannelLabel = value!;
+                                });
+                              },
+                            )),
+
+                        //
+                        // Divider
+                        //
+                        CustomDivider(
+                          text: 'Preprocessing',
+                          paddingBottom: 25,
+                        ),
+                        widget.preprocessingZStack,
+                        Column(
+                          children: widget.preprocessingSteps,
+                        ),
+
+                        //
+                        // Add preprocessing step button
+                        //
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 20, 0, 10),
+                          child: FilledButton(
+                            onPressed: () {
+                              showAddPreprocessingStepDialog();
+                            },
+                            child: Wrap(children: [
+                              const Icon(Icons.add),
+                              const Text('')
+                            ]),
+                          ),
+                        ),
+
+                        //
+                        // Divider
+                        //
+                        CustomDivider(text: 'Detection'),
+                        Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: SizedBox(
+                              width: 230,
+                              child: SwitchListTile(
+                                title: const Text('Use AI'),
+                                secondary:
+                                    const Icon(Icons.auto_awesome_outlined),
+                                value: widget.useAI,
+                                onChanged: (value) {
+                                  setState(() {
+                                    widget.useAI = value;
+                                  });
+                                },
+                              ),
+                            )),
+
+                        ////////////////////////////////////////////////////////////////////
+                        //
+                        // Threshold method
+                        //
+                        Visibility(
+                            visible: !widget.useAI,
+                            child: Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: DropdownMenu<ThresholdMethod>(
+                                  width: 230,
+                                  initialSelection:
+                                      widget.selectedThresholdMethod,
+                                  controller: thresholdMethodController,
+                                  leadingIcon: const Icon(Icons.contrast),
+                                  label: const Text('Thresholds'),
+                                  dropdownMenuEntries: thresholdMethodEntries,
+                                  onSelected: (value) {
+                                    setState(() {
+                                      widget.selectedThresholdMethod = value!;
+                                    });
+                                  },
+                                ))),
+                        //
+                        // Minimum threshold
+                        //
+                        Visibility(
+                            visible: !widget.useAI,
+                            child: Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: SizedBox(
+                                  width: 230,
+                                  child: TextField(
+                                    obscureText: false,
+                                    controller: widget.selectedMinThreshold,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp(r'^\d+\.?\d{0,2}')),
+                                      RangeTextInputFormatter(min: 0, max: 100)
+                                    ],
+                                    keyboardType:
+                                        TextInputType.numberWithOptions(
+                                            decimal: true),
+                                    decoration: InputDecoration(
+                                        prefixIcon: const Icon(Icons.exposure),
+                                        border: OutlineInputBorder(),
+                                        labelText: 'Min threshold',
+                                        suffixText: '%',
+                                        hintText: '[0-100]',
+                                        helperText:
+                                            'Value of 100% means perfect white.'),
+                                  ),
+                                ))),
+
+                        ////////////////////////////////////////////////////////////////////
+                        //
+                        // AI method
+                        //
+                        Visibility(
+                            visible: widget.useAI,
+                            child: Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: DropdownMenu<AIModel>(
+                                  width: 230,
+                                  initialSelection: widget.selectedAIModel,
+                                  controller: aiModelController,
+                                  leadingIcon: const Icon(Icons.hub_outlined),
+                                  label: const Text('AI model'),
+                                  dropdownMenuEntries: aiModelEntries,
+                                  onSelected: (value) {
+                                    widget.selectedAIModel = value!;
+                                  },
+                                ))),
+                        //
+                        // Minimum probability
+                        //
+                        Visibility(
+                            visible: widget.useAI,
+                            child: Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: SizedBox(
+                                  width: 230,
+                                  child: TextField(
+                                    obscureText: false,
+                                    controller: widget.selectedMinProbability,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp(r'^\d+\.?\d{0,2}')),
+                                      RangeTextInputFormatter(min: 0, max: 100)
+                                    ],
+                                    keyboardType:
+                                        TextInputType.numberWithOptions(
+                                            decimal: true),
+                                    decoration: InputDecoration(
+                                        prefixIcon: const Icon(Icons.percent),
+                                        border: OutlineInputBorder(),
+                                        labelText: 'Min probability',
+                                        suffixText: '%',
+                                        hintText: '[0-100]',
+                                        helperText:
+                                            'Minimum probability to accept a finding.'),
+                                  ),
+                                ))),
+
+                        //
+                        // Divider
+                        //
+                        CustomDivider(
+                          text: 'Filtering',
+                        ),
+
+                        //
+                        // Minimum circularity
+                        //
+                        Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: SizedBox(
+                              width: 230,
+                              child: TextField(
+                                obscureText: false,
+                                controller: widget.selectedMinCircularity,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d+\.?\d{0,2}')),
+                                  RangeTextInputFormatter(min: 0, max: 100)
+                                ],
+                                keyboardType: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                decoration: InputDecoration(
+                                    prefixIcon:
+                                        const Icon(Icons.hexagon_outlined),
+                                    suffixText: '%',
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Min. circularity',
+                                    hintText: '[0-100]',
+                                    helperText:
+                                        'Value of 100% means perfect circle.'),
+                              ),
+                            )),
+
+                        //
+                        // Particle size
+                        //
+                        Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: SizedBox(
+                              width: 230,
+                              child: TextField(
+                                obscureText: false,
+                                controller: widget.selectedParticleSizeRange,
+                                inputFormatters: [
+                                  CheckForNonEmptyTextField(
+                                      regex: RegExp(
+                                          r'^\d+\.?\d{0,2}-\d+\.?\d{0,2}')),
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d+\.?\d{0,2}-\d+\.?\d{0,2}')),
+                                ],
+                                keyboardType: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                decoration: InputDecoration(
+                                    prefixIcon:
+                                        const Icon(Icons.all_out_outlined),
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Particle size range',
+                                    suffixText: 'µm²',
+                                    hintText: '[min] - [max]',
+                                    helperText: 'Particle size range.'),
+                              ),
+                            )),
+
+                        //
+                        // Snap area
+                        //
+                        Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: SizedBox(
+                              width: 230,
+                              child: TextField(
+                                obscureText: false,
+                                controller: widget.selectedSnapArea,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d+\.?\d{0,2}')),
+                                  RangeTextInputFormatter(
+                                      min: 0, max: double.infinity)
+                                ],
+                                keyboardType: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                decoration: InputDecoration(
+                                    prefixIcon: const Icon(Icons.adjust),
+                                    suffixText: 'µm',
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Snap area diameter',
+                                    helperText: 'Snap area diameter'),
+                              ),
+                            )),
+
+                        //
+                        // Divider
+                        //
+                        CustomDivider(text: "", paddingBottom: 5),
+
+                        RemoveChannelWidget(widget: widget)
+                      ])),
+                    ),
+                  ),
+                )))),
+      ),
+    );
   }
 }
