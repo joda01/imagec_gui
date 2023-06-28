@@ -121,7 +121,7 @@ enum PreprocessingSteps {
 
   static stringToEnum(String str) {
     for (final label in PreprocessingSteps.values) {
-      if (label.value == str) {
+      if (label.value.toLowerCase() == str.toLowerCase()) {
         return label;
       }
     }

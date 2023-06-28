@@ -21,8 +21,10 @@ class PreprocessingZStack extends StatelessWidget {
   @override
   Object toJsonObject() {
     final settings = {
-      "function": Z_STACK_LABEL,
-      "value": selectedZStackOption.value
+      Z_STACK_LABEL.toLowerCase(): {
+        "function": Z_STACK_LABEL,
+        "value": selectedZStackOption.value
+      }
     };
 
     return settings;

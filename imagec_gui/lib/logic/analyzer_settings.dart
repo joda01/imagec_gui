@@ -12,10 +12,10 @@ import '../screens/screen_home.dart';
 ///
 String generateAnalyzeSettings(String inputFolder) {
   final mainSettings = {
+    "input_folder": inputFolder,
     "channels": [],
     "pipeline": [],
     "options":{
-      "input_folder": inputFolder,
       "pixel_in_micrometer": 1,
       "with_control_images": true,
       "with_detailed_report": true

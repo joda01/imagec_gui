@@ -48,11 +48,12 @@ class ChannelSettingExplicite extends Channel {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text(''),
-        content:
-          img.length > 0 ?
-         Image(
-          image: img[0].image,
-        ) : Text("..."),
+        content: img.length > 0
+            ? InteractiveViewer(
+              child: Image(
+                image: img[0].image,
+              ))
+            : Text("..."),
         actions: <Widget>[
           TextButton(
             child: const Text('<<'),
@@ -90,14 +91,17 @@ class ChannelSettingExplicite extends Channel {
     // Load preprocessing steps
     //
     final preprocessingSteps = channel["preprocessing"] as List<dynamic>;
-    for (final dynamic preprocessing in preprocessingSteps) {
-      if (preprocessing["function"] as String == Z_STACK_LABEL) {
-        super.preprocessingZStack.fromJsonObject(preprocessing);
-      } else {
-        final preWidget = addPreprocessingStep(PreprocessingSteps.stringToEnum(
-            preprocessing["function"] as String));
-        preWidget.fromJsonObject(preprocessing);
-      }
+    for (final Map<String, dynamic> preprocessingObject in preprocessingSteps) {
+      
+      preprocessingObject.forEach((key, value) { 
+        if (key == Z_STACK_LABEL.toLowerCase()) {
+          super.preprocessingZStack.fromJsonObject(value);
+        } else {
+          final preWidget = addPreprocessingStep(
+              PreprocessingSteps.stringToEnum(key));
+          preWidget.fromJsonObject(value);
+        }
+      });
     }
 
     //
@@ -362,8 +366,8 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
 
                           widget.showPreview(context, prevImage);
                         } catch (ex) {
-                          List<Image> empty  =[];
-                          widget.showPreview(context,empty );
+                          List<Image> empty = [];
+                          widget.showPreview(context, empty);
                         }
                       },
                       tooltip: "Preview",

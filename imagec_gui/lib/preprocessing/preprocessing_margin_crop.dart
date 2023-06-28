@@ -9,22 +9,21 @@ import '../channel/channel.dart';
 
 import 'package:namer_app/preprocessing/preprocessing.dart';
 
-
 ///
 /// Margin crop preprocessing
 ///
 class PreprocessingWidgetMarginCrop extends PreprocessingWidget {
   PreprocessingWidgetMarginCrop({required super.parentChannelWidget});
 
-
-  TextEditingController marginCropSize = TextEditingController()
-    ..text = "0";
+  TextEditingController marginCropSize = TextEditingController()..text = "0";
 
   @override
   Object toJsonObject() {
     final settings = {
-      "function": PreprocessingSteps.marginCrop.value,
-      "value": marginCropSize.text
+      PreprocessingSteps.marginCrop.value.toLowerCase(): {
+        "function": PreprocessingSteps.marginCrop.value,
+        "value": double.parse(marginCropSize.text)
+      }
     };
 
     return settings;
@@ -32,9 +31,8 @@ class PreprocessingWidgetMarginCrop extends PreprocessingWidget {
 
   @override
   void fromJsonObject(dynamic data) {
-    marginCropSize.text = data["value"] as String;
+    marginCropSize.text = (data["value"] as double).toString();
   }
-
 
   @override
   Widget getChild() {

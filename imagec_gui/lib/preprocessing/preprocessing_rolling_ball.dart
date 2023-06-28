@@ -9,21 +9,21 @@ import '../channel/channel.dart';
 
 import 'package:namer_app/preprocessing/preprocessing.dart';
 
-
 ///
 /// Margin crop preprocessing
 ///
 class PreprocessingRollingBall extends PreprocessingWidget {
   PreprocessingRollingBall({required super.parentChannelWidget});
 
-  TextEditingController rollingBallSize = TextEditingController()
-    ..text = "0";
+  TextEditingController rollingBallSize = TextEditingController()..text = "0";
 
   @override
   Object toJsonObject() {
     final settings = {
-      "function": PreprocessingSteps.rollingBall.value,
-      "value": rollingBallSize.text
+      PreprocessingSteps.rollingBall.value.toLowerCase(): {
+        "function": PreprocessingSteps.rollingBall.value,
+        "value": double.parse(rollingBallSize.text)
+      }
     };
 
     return settings;
@@ -31,9 +31,8 @@ class PreprocessingRollingBall extends PreprocessingWidget {
 
   @override
   void fromJsonObject(dynamic data) {
-    rollingBallSize.text = data["value"] as String;
+    rollingBallSize.text = (data["value"] as double).toString();
   }
-
 
   @override
   Widget getChild() {

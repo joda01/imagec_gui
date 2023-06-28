@@ -140,7 +140,7 @@ class _ChannelRow extends State<ChannelRow>
       actChannels.insert(idx, chSet);
     }
 
-    newSelectedFolder = settings["options"]["input_folder"] as String;
+    newSelectedFolder = settings["input_folder"] as String;
     inputFolder.text = newSelectedFolder;
 
     try {
