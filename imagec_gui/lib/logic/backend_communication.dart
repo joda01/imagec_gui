@@ -30,14 +30,14 @@ Future<void> startAnalyze(String analyzeSettings) async {
 /// \brief Start analyze
 ///
 Future<List<Image>> getPreviewImage(
-    String analyzeSettings, int imgNr, int channel) async {
+    String analyzeSettings, int imgNr, int channelArrayIndex) async {
   final url = Uri.parse('$BASE_URL/api/v1/preview');
 
   final headers = {'Content-Type': 'application/json'};
 
   var content = jsonDecode(analyzeSettings);
   content["image_nr"] = imgNr;
-  content["channel_idx"] = channel;
+  content["channel_array_idx"] = channelArrayIndex;
 
   final response =
       await http.post(url, headers: headers, body: jsonEncode(content));

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:namer_app/channel/channel.dart';
 import 'package:namer_app/logic/analyzer_settings.dart';
 import 'package:namer_app/preprocessing/preprocessing_z_stack.dart';
+import 'package:namer_app/screens/screen_channels.dart';
 import '../logic/backend_communication.dart';
 import '../preprocessing/preprocessing_margin_crop.dart';
 import '../preprocessing/preprocessing.dart';
@@ -47,7 +48,7 @@ class ChannelSettingExplicite extends Channel {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text(''),
+        title: const Text('Preview'),
         content: img.length > 0
             ? InteractiveViewer(
               child: Image(
@@ -359,10 +360,11 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                     FloatingActionButton(
                       onPressed: () async {
                         try {
+                          
                           final prevImage = await getPreviewImage(
                               generateAnalyzeSettings(inputFolder.text),
                               0,
-                              widget.chSelector.getSelectedChannel());
+                              actChannels.indexOf(widget));
 
                           widget.showPreview(context, prevImage);
                         } catch (ex) {
