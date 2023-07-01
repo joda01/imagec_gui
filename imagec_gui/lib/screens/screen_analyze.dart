@@ -70,7 +70,7 @@ class _ScreenAnalysis extends State<ScreenAnalysis>
   ///
   Timer? _timer;
   void startTimer() {
-    const duration = Duration(seconds: 1);
+    const duration = Duration(seconds: 3);
     _timer = Timer.periodic(duration, (Timer timer) {
       updateStatus();
     });
@@ -193,6 +193,7 @@ updateChannelSelections();
     super.dispose();
     stopTimer();
   }
+
 
   @override
   Widget build(BuildContext context) {

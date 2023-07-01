@@ -153,3 +153,25 @@ Future<dynamic> getSettingsConfig(String pathToSettingsConfig) async {
   // Request failed, handle the error
   //print('Request failed with status: ${response.statusCode}');
 }
+
+
+///
+/// \brief Start analyze
+///
+Future<void> setWorkingDirectory(String inputFolder) async {
+  final url = Uri.parse('$BASE_URL/api/v1/setworkingdir');
+
+  final headers = {'Content-Type': 'application/json'};
+
+  var request = {"input_folder": inputFolder};
+  final response =
+      await http.post(url, headers: headers, body: jsonEncode(request));
+
+  if (response.statusCode == 200) {
+    // Request successful, parse the response
+    final responseData = jsonDecode(response.body);
+  } else {
+    // Request failed, handle the error
+    print('Request failed with status: ${response.statusCode}');
+  }
+}

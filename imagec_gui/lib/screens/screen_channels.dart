@@ -19,7 +19,6 @@ ChannelRow channelRow = ChannelRow();
 const Widget divider = SizedBox(height: 10);
 List<Channel> actChannels = [];
 
-
 // Folder selection
 String newSelectedFolder = "";
 
@@ -82,6 +81,7 @@ class _ChannelRow extends State<ChannelRow>
     setState(() {
       inputFolder.text = path;
     });
+    setWorkingDirectory(inputFolder.text);
   }
 
   void _onSelectionChange(String newFolder) {
@@ -94,6 +94,7 @@ class _ChannelRow extends State<ChannelRow>
       setState(() {
         newSelectedFolder = "";
         inputFolder.text = "";
+        setWorkingDirectory(inputFolder.text);
       });
     } catch (e) {}
     addChannelButton();
@@ -142,6 +143,7 @@ class _ChannelRow extends State<ChannelRow>
 
     newSelectedFolder = settings["input_folder"] as String;
     inputFolder.text = newSelectedFolder;
+    setWorkingDirectory(inputFolder.text);
 
     try {
       setState(() {});
@@ -461,8 +463,8 @@ class _AddChannelButton extends State<AddChannelButton>
                             width: 60,
                             child: FloatingActionButton(
                               onPressed: () {
-                                  homeState?.handleScreenChanged(ScreenSelected.analysis.value);
-
+                                homeState?.handleScreenChanged(
+                                    ScreenSelected.analysis.value);
                               },
                               tooltip: "Start analyze",
                               backgroundColor: Colors.green,

@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:namer_app/channel/channel.dart';
@@ -31,7 +32,7 @@ class ChannelSettingExplicite extends Channel {
   ///
   /// Show preview
   ///
-  void showPreview(BuildContext context, List<Image> img) {
+  void showPreview(BuildContext context, ChannelSettingExplicite widget) {
     ///
     /// Channel labels
     final TextEditingController channelTypesController =
@@ -44,34 +45,63 @@ class ChannelSettingExplicite extends Channel {
     }
 
     ChannelTypeLabels? selectedChannelType = ChannelTypeLabels.nucleus;
+    List<Image> actImage = [];
 
-    showDialog<void>(
+    var statefulDialog = StatefulBuilder(
+      builder: (context, setState) {
+        void loadImage() {
+          if (actImage.length == 0) {
+            final prevImage = getPreviewImage(
+                generateAnalyzeSettings(inputFolder.text),
+                0,
+                actChannels.indexOf(widget));
+
+            prevImage.then((value) {
+              print("finished");
+              setState(() {
+                actImage = value;
+              });
+            });
+          }
+        }
+
+        loadImage();
+
+        return AlertDialog(
+          title: actImage.isNotEmpty ? const Text('Preview') : const Text(''),
+          content: actImage.isNotEmpty
+              ? InteractiveViewer(
+                  child: Image(
+                  image: actImage[0].image,
+                ))
+              : const Image(image: AssetImage('assets/wait.gif')),
+          actions: <Widget>[
+            TextButton(
+              child: actImage.isNotEmpty ? const Text('<<') : const Text(''),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+                child: actImage.isNotEmpty ? const Text('>>') : const Text(''),
+                onPressed: () {
+                  setState(() {});
+                }),
+            FilledButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Preview'),
-        content: img.length > 0
-            ? InteractiveViewer(
-              child: Image(
-                image: img[0].image,
-              ))
-            : Text("..."),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('<<'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          TextButton(
-            child: const Text('>>'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          FilledButton(
-            child: const Text('Close'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
+      builder: (context) {
+        String contentText = "Content of Dialog";
+        return statefulDialog;
+      },
     );
   }
 
@@ -93,13 +123,12 @@ class ChannelSettingExplicite extends Channel {
     //
     final preprocessingSteps = channel["preprocessing"] as List<dynamic>;
     for (final Map<String, dynamic> preprocessingObject in preprocessingSteps) {
-      
-      preprocessingObject.forEach((key, value) { 
+      preprocessingObject.forEach((key, value) {
         if (key == Z_STACK_LABEL.toLowerCase()) {
           super.preprocessingZStack.fromJsonObject(value);
         } else {
-          final preWidget = addPreprocessingStep(
-              PreprocessingSteps.stringToEnum(key));
+          final preWidget =
+              addPreprocessingStep(PreprocessingSteps.stringToEnum(key));
           preWidget.fromJsonObject(value);
         }
       });
@@ -359,18 +388,7 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                     ),
                     FloatingActionButton(
                       onPressed: () async {
-                        try {
-                          
-                          final prevImage = await getPreviewImage(
-                              generateAnalyzeSettings(inputFolder.text),
-                              0,
-                              actChannels.indexOf(widget));
-
-                          widget.showPreview(context, prevImage);
-                        } catch (ex) {
-                          List<Image> empty = [];
-                          widget.showPreview(context, empty);
-                        }
+                        widget.showPreview(context, widget);
                       },
                       tooltip: "Preview",
                       child: const Icon(Icons.visibility),
