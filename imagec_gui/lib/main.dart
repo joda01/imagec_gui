@@ -25,7 +25,7 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   bool useMaterial3 = true;
   ThemeMode themeMode = ThemeMode.system;
-  ColorSeed colorSelected = ColorSeed.blue;
+  ColorSeed colorSelected = ColorSeed.teal;
   ColorScheme? imageColorScheme = const ColorScheme.light();
   ColorSelectionMethod colorSelectionMethod = ColorSelectionMethod.colorSeed;
 

@@ -369,7 +369,7 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
     }
 
     return SizedBox(
-      width: 250,
+      width: 260,
       child: Scaffold(
         bottomNavigationBar: Padding(
             padding: const EdgeInsets.fromLTRB(2, 10, 2, 5),
