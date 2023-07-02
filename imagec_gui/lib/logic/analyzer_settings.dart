@@ -2,29 +2,30 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:html' as html;
 
-import '../channel/channel_common.dart';
-import '../dialogs/dialog_analyze.dart';
+import '../channel/channel_enums.dart';
 import '../screens/screen_analyze.dart';
+import '../screens/screen_channels.dart';
 import '../screens/screen_home.dart';
 
 ///
 /// Generate analyze settings
 ///
-String generateAnalyzeSettings(String pipeline, String inputFolder) {
+String generateAnalyzeSettings(String inputFolder) {
   final mainSettings = {
     "input_folder": inputFolder,
-    "pipeline": pipeline,
     "channels": [],
-    "min_coloc_factor": 10,
-    "pixel_in_micrometer": 1,
-    "with_control_images": true,
-    "with_detailed_report": true
+    "pipeline": [],
+    "options":{
+      "pixel_in_micrometer": 1,
+      "with_control_images": true,
+      "with_detailed_report": true
+    }
   };
 
   // Iterate over all channels
   for (var ch in actChannels) {
     var obj = ch.toJsonObject() as LinkedHashMap<dynamic, dynamic>;
-    if (obj.containsKey("index")) {
+    if (obj.containsKey("info")) {
       var channels = mainSettings['channels'] as List<dynamic>;
       channels.add(obj);
     }
@@ -39,7 +40,9 @@ String generateAnalyzeSettings(String pipeline, String inputFolder) {
 ///
 void loadFromAnalyzeSettings(dynamic settings) {
   channelRow.loadChannelSettings(settings);
-  selectedPipeline = Pipelines.stringToEnum(settings["pipeline"] as String);
+  
+  /// \todo Load pipeline
+  //selectedPipeline = Functions.stringToEnum(settings["pipeline"] as String);
 }
 
 ///
@@ -47,7 +50,7 @@ void loadFromAnalyzeSettings(dynamic settings) {
 ///
 Future<void> storeSettingsToLocalFile() async {
   final jsonString =
-      generateAnalyzeSettings(selectedPipeline!.value, inputFolder.text);
+      generateAnalyzeSettings(inputFolder.text);
   html.window.localStorage["IMAGEC_SETTINGS"] = jsonString;
 }
 

@@ -1,479 +1,550 @@
-// Copyright 2021 The Flutter team. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-import 'package:flutter/gestures.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:namer_app/screens/screen_home.dart';
-import '../channel/channel_common.dart';
-import '../channel/channel_explicite.dart';
-import '../dialogs/dialog_analyze.dart';
+import 'package:flutter/services.dart';
+import 'package:namer_app/screens/screen_channels.dart';
+import '../channel/channel.dart';
+import '../channel/channel_enums.dart';
 import '../logic/analyzer_settings.dart';
 import '../logic/backend_communication.dart';
 
-DialogAnalyze dialogAnalyze = DialogAnalyze();
-ChannelRow channelRow = ChannelRow();
-const Widget divider = SizedBox(height: 10);
+enum AnalyzeState { STOPPED, STOPPING, STARTING, RUNNING }
 
-// Folder selection
-String newSelectedFolder = "";
+TextEditingController inputFolder = new TextEditingController();
+TextEditingController cpus = TextEditingController(text: "1");
 
-// File opener
-String newSelectedJsonSettingsFile = "";
+TextEditingController PostProcessingScriptController = TextEditingController();
+PostProcessingScript? selectedPostProcessingScript =
+    PostProcessingScript.liner_regression;
 
-// If screen content width is greater or equal to this value, the light and dark
-// color schemes will be displayed in a column. Otherwise, they will
-// be displayed in a row.
-const double narrowScreenWidthThreshold = 400;
+TextEditingController pipelinesController = TextEditingController();
+Functions? selectedPipeline = Functions.count;
 
-class ScreenAnalyze extends StatelessWidget {
-  const ScreenAnalyze({super.key});
+class ScreenAnalysis extends StatefulWidget {
+  @override
+  _ScreenAnalysis createState() => new _ScreenAnalysis();
+}
+
+class _ScreenAnalysis extends State<ScreenAnalysis>
+    with AutomaticKeepAliveClientMixin<ScreenAnalysis> {
+  double _progressAll = 0;
+  double _progressImage = 0;
+  AnalyzeState _state = AnalyzeState.STOPPED;
+  String activeFolder = "/";
+  final ScrollController scrollVert = ScrollController();
+  String _progressImageString = "-";
+  String _progressAllString = "-";
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
+
+  ///
+  /// Dropdown entries
+  final List<DropdownMenuEntry<Functions>> pipelinesentries =
+      <DropdownMenuEntry<Functions>>[];
+
+  final List<DropdownMenuEntry<Channel>> dropDownChannels =
+      <DropdownMenuEntry<Channel>>[];
+
+
+  final List<DropdownMenuEntry<PostProcessingScript>>
+      PostProcessingScriptEntries = <DropdownMenuEntry<PostProcessingScript>>[];
+
+  void _updateProgress(double perImage, double total) {
+    setState(() {
+      _progressImage = perImage;
+      _progressAll = total;
+    });
+  }
+
+  void _updateState(AnalyzeState state) {
+    if (_state != state) {
+      setState(() {
+        _state = state;
+      });
+    }
+  }
+
+  ///
+  /// Get the sctual status
+  ///
+  Timer? _timer;
+  void startTimer() {
+    const duration = Duration(seconds: 3);
+    _timer = Timer.periodic(duration, (Timer timer) {
+      updateStatus();
+    });
+  }
+
+  void stopTimer() {
+    _timer?.cancel();
+  }
+
+  ///
+  /// Update the analyze status
+  ///
+  void updateStatus() {
+    getAnalyzeStatus().then((value) {
+      print("VAL: $value");
+
+      if (value["status"] == "RUNNING") {
+        double imagesTotal = value["total"]["total"];
+        double imagesTotalFinished = value["total"]["finished"];
+
+        double actImagesTotal = value["actual_image"]["total"];
+        double actImagesTotalFinished = value["actual_image"]["finished"];
+
+        double progressAll = 0;
+        if (imagesTotal > 0) {
+          progressAll = imagesTotalFinished / imagesTotal;
+        }
+        double progressImage = 0;
+        if (actImagesTotal > 0) {
+          progressImage = actImagesTotalFinished / actImagesTotal;
+        }
+        _updateProgress(progressImage, progressAll);
+        _updateState(AnalyzeState.RUNNING);
+
+        setState(() {
+          _progressAllString = "Images: $imagesTotalFinished / $imagesTotal";
+          _progressImageString =
+              "Tiles: $actImagesTotalFinished / $actImagesTotal";
+        });
+      }
+      if (value["status"] == "FINISHED") {
+        _updateProgress(0, 0);
+        _updateState(AnalyzeState.STOPPED);
+
+        setState(() {
+          _progressImageString = "";
+          _progressAllString = "";
+        });
+      }
+    });
+  }
+
+  ///
+  ///
+  ///
+  Color _getButtonColor() {
+    if (_state == AnalyzeState.STOPPED) {
+      return Colors.green;
+    } else {
+      return Colors.red;
+    }
+  }
+
+  ///
+  ///
+  ///
+  Text _getButtonText() {
+    if (_state == AnalyzeState.STOPPED) {
+      return Text("Start");
+    } else if (_state == AnalyzeState.STOPPING) {
+      return Text("Stopping");
+    } else {
+      return Text("Stop");
+    }
+  }
+
+  ///
+  ///
+  ///
+  bool _isEnabled() {
+    if (_state == AnalyzeState.STOPPING) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  ///
+  ///
+  ///
+  @override
+  void initState() {
+    startTimer();
+    for (final Functions entry in Functions.values) {
+      pipelinesentries
+          .add(DropdownMenuEntry<Functions>(value: entry, label: entry.label));
+    }
+updateChannelSelections();
+
+    for (final PostProcessingScript entry in PostProcessingScript.values) {
+      PostProcessingScriptEntries.add(DropdownMenuEntry<PostProcessingScript>(
+          value: entry, label: entry.label));
+    }
+    updateStatus();
+    super.initState();
+  }
+
+
+  void updateChannelSelections()
+  {
+    for (final Channel entry in actChannels) {
+      dropDownChannels
+          .add(DropdownMenuEntry<Channel>(value: entry, label: entry.getNameAndIndex()));
+    }
+  }
+
+
+  @override
+  void dispose() {
+    super.dispose();
+    stopTimer();
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints viewportConstraints) {
-      return channelRow;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+      child: Scaffold(
+        body: Scrollbar(
+            thickness: 10,
+            //thumbVisibility: true,
+            interactive: true,
+            controller: scrollVert,
+            child: SingleChildScrollView(
+                controller: scrollVert,
+                scrollDirection: Axis.vertical,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Wrap(
+                        //crossAxisAlignment: CrossAxisAlignment.stretch,
+                        //mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                              //width: 350,
+                              child: Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                  child: DropdownMenu<Channel>(
+                                    enabled: _state == AnalyzeState.STOPPED
+                                        ? true
+                                        : false,
+                                    //width: 330,
+                                   // initialSelection: dropDownChannels,
+                                    controller: pipelinesController,
+                                    leadingIcon:
+                                        const Icon(Icons.functions_outlined),
+                                    label: const Text('Function'),
+                                    helperText: "Select analyzes function.",
+                                    dropdownMenuEntries: dropDownChannels,
+                                    onSelected: (value) =>
+                                        //selectedPipeline = value,
+                                        print("")
+                                  ))),
+                          
+                                                    SizedBox(
+                              //width: 350,
+                              child: Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                  child: DropdownMenu<Functions>(
+                                    enabled: _state == AnalyzeState.STOPPED
+                                        ? true
+                                        : false,
+                                    //width: 330,
+                                    initialSelection: selectedPipeline,
+                                    controller: pipelinesController,
+                                    leadingIcon:
+                                        const Icon(Icons.functions_outlined),
+                                    label: const Text('Function'),
+                                    helperText: "Select analyzes function.",
+                                    dropdownMenuEntries: pipelinesentries,
+                                    onSelected: (value) =>
+                                        selectedPipeline = value,
+                                  ))),
+                          
+                          
+                          
+                          
+                          
+                          SizedBox(
+                              //width: 350,
+                              child: Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                  child: DropdownMenu<PostProcessingScript>(
+                                    enabled: _state == AnalyzeState.STOPPED
+                                        ? true
+                                        : false,
+                                    //width: 330,
+                                    initialSelection:
+                                        selectedPostProcessingScript,
+                                    controller: PostProcessingScriptController,
+                                    leadingIcon: const Icon(
+                                        Icons.stacked_bar_chart_outlined),
+                                    label: const Text('Analytics'),
+                                    helperText: "Add post processing script.",
+                                    dropdownMenuEntries:
+                                        PostProcessingScriptEntries,
+                                    onSelected: (value) =>
+                                        selectedPostProcessingScript = value,
+                                  ))),
+                          SizedBox(
+                            width: 250,
+                            height: 95,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                              child: TextField(
+                                enabled: _state == AnalyzeState.STOPPED
+                                    ? true
+                                    : false,
+                                controller: cpus,
+                                obscureText: false,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d+\.?\d{0,2}')),
+                                  RangeTextInputFormatter(min: 1, max: 65536)
+                                ],
+                                keyboardType: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                decoration: InputDecoration(
+                                    prefixIcon:
+                                        const Icon(Icons.memory_outlined),
+                                    border: OutlineInputBorder(),
+                                    labelText: 'CPUs',
+                                    suffixText: '',
+                                    hintText: '[0-65536]',
+                                    helperText: 'Number of CPUs to use.'),
+                              ),
+                            ),
+                          ),
+                        ]),
+                    CustomDivider(
+                      text: "",
+                      paddingTop: 20,
+                      paddingBottom: 20,
+                    ),
+                    Wrap(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                          child: FilledButton(
+                            onPressed: _isEnabled()
+                                ? () {
+                                    if (_state == AnalyzeState.STOPPED) {
+                                      _updateState(AnalyzeState.STARTING);
+                                      var promise = startAnalyze(
+                                          generateAnalyzeSettings(
+                                              inputFolder.text));
+                                    } else {
+                                      _updateState(AnalyzeState.STOPPING);
+                                      var promise = stopAnalyze();
+                                    }
+                                  }
+                                : null,
+                            style: FilledButton.styleFrom(
+                                //  backgroundColor: Theme.of(context).colorScheme.error),
+                                backgroundColor: _getButtonColor()),
+                            child: _getButtonText(),
+                          ),
+                        )
+                      ],
+                    ),
+                    Center(child: Text(_progressImageString)),
+                    Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 2, 20, 2),
+                        child: LinearProgressIndicator(
+                          minHeight: 10,
+                          value: _progressImage,
+                          semanticsLabel: 'progress per image',
+                        )),
+                    Center(child: Text(_progressAllString)),
+                    Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 2, 20, 10),
+                        child: LinearProgressIndicator(
+                          minHeight: 15,
+                          value: _progressAll,
+                          semanticsLabel: 'total progress',
+                        )),
+                  ],
+                ))),
+      ),
+    );
+  }
+}
+
+///
+/// \brief Open folder dialog
+///
+///
+class OpenFolderDialog extends StatefulWidget {
+  OpenFolderDialog(
+      {super.key,
+      required this.selectedElement,
+      required this.isSelectionMode,
+      required this.onSelectionChange,
+      required this.fileExtensions});
+
+  final bool isSelectionMode;
+  String activeFolder = "";
+  String selectedElement;
+  final List<bool> selectedList = [false, false];
+  final List<(String, String)> directoriesEntries = [];
+  final Function(String)? onSelectionChange;
+  final List<String> fileExtensions;
+
+  Future<void> setListParameters() async {
+    final (directories, files, homePath) =
+        await listFolders(activeFolder, fileExtensions);
+    directoriesEntries.clear();
+    selectedList.clear();
+
+    if (activeFolder.isEmpty) {
+      activeFolder = homePath;
+    }
+
+    String firstEntry = activeFolder;
+    if (firstEntry.lastIndexOf("/") > 0) {
+      firstEntry = firstEntry.substring(0, firstEntry.lastIndexOf("/"));
+      // firstEntry = firstEntry.substring(0, firstEntry.lastIndexOf("/"));
+    } else {
+      // We reached the root path
+      firstEntry = "/";
+    }
+
+    directoriesEntries.add(("..", firstEntry));
+    selectedList.add(false);
+
+    for (final String entry in directories) {
+      String folderName = entry;
+      folderName = entry.substring(entry.lastIndexOf("/") + 1);
+
+      // Do not add hidden folder to the list
+      if (!folderName.startsWith(".")) {
+        directoriesEntries.add((folderName, entry));
+        selectedList.add(false);
+      }
+    }
+
+    for (final String entry in files) {
+      String folderName = entry;
+      folderName = entry.substring(entry.lastIndexOf("/") + 1);
+      // Do not add hidden folder to the list
+      if (!folderName.startsWith(".")) {
+        directoriesEntries.add((folderName, entry));
+        selectedList.add(false);
+      }
+    }
+  }
+
+  @override
+  State<OpenFolderDialog> createState() => _OpenFolderDialogState();
+}
+
+class _OpenFolderDialogState extends State<OpenFolderDialog> {
+  void _toggle(int index) {
+    if (widget.isSelectionMode) {
+      setState(() {
+        widget.selectedList[index] = !widget.selectedList[index];
+      });
+    }
+  }
+
+  void updateList() {
+    final f = widget.setListParameters();
+    f.then((value) {
+      setState(() {});
     });
   }
-}
 
-class ChannelRow extends StatefulWidget {
-  ChannelRow({super.key});
-
-  _ChannelRow rowStateful = _ChannelRow();
-  @override
-  State<ChannelRow> createState() => rowStateful;
-
-  void loadChannelSettings(dynamic settings) {
-    rowStateful.loadChannelSettings(settings);
+  void _onActiveFolderChanged(String newFolder) {
+    setState(() {});
   }
 
-  void clearAllChannels() {
-    rowStateful.clearAllChannels();
-  }
-}
-
-class _ChannelRow extends State<ChannelRow>
-    with AutomaticKeepAliveClientMixin<ChannelRow> {
-  final ScrollController controllerHorizontal = ScrollController();
-
-  void addChannelButton() {
-    actChannels.add(AddChannelButton(
-        scroll: globalCardControllervertical,
-        parent: this,
-        channelType: ChannelTypeLabels.nucleus));
-  }
+  final ScrollController listViewScrollController = ScrollController();
+  final double listItemHeight = 45;
 
   @override
   void initState() {
     super.initState();
-    if (actChannels.isEmpty) {
-      addChannelButton();
-    }
-  }
 
-  void _updateFolderPath(String path) {
-    setState(() {
-      inputFolder.text = path;
-    });
-  }
-
-  void _onSelectionChange(String newFolder) {
-    newSelectedFolder = newFolder;
-  }
-
-  void clearAllChannels() {
-    actChannels.clear();
-    try {
-      setState(() {
-        newSelectedFolder = "";
-        inputFolder.text = "";
-      });
-    } catch (e) {}
-    addChannelButton();
-  }
-
-  ///
-  /// Load channel settings from json file
-  ///
-  void loadChannelSettings(dynamic settings) {
-    // If empty add open buttons
-    actChannels.clear();
-
-    //print(settings);
-    final channels = settings["channels"] as List<dynamic>;
-    for (final dynamic channel in channels) {
-      int idx = actChannels.length;
-
-      var channelType = ChannelTypeLabels.nucleus;
-      switch (channel["type"] as String) {
-        case "EV":
-          channelType = ChannelTypeLabels.ev;
-          break;
-        case "BACKGROUND":
-          channelType = ChannelTypeLabels.background;
-          break;
-        case "NUCLEUS":
-          channelType = ChannelTypeLabels.nucleus;
-          break;
-        case "CELL":
-          channelType = ChannelTypeLabels.cell;
-          break;
-
-        default:
-          break;
+    if (!widget.selectedElement.isEmpty) {
+      String firstEntry = widget.selectedElement;
+      if (firstEntry.lastIndexOf("/") > 0) {
+        firstEntry = firstEntry.substring(0, firstEntry.lastIndexOf("/"));
+      } else {
+        firstEntry = "/";
       }
-      var chSet = ChannelSettingExplicite(
-        key: UniqueKey(),
-        scroll: globalCardControllervertical,
-        parent: this,
-        channelType: channelType,
-      );
-
-      chSet.loadChannelSettings(channel);
-      actChannels.insert(idx, chSet);
+      widget.activeFolder = firstEntry;
     }
-
-    newSelectedFolder = settings["input_folder"] as String;
-    inputFolder.text = newSelectedFolder;
-
-    try {
+    final f = widget.setListParameters();
+    f.then((value) {
+      for (int n = 0; n < widget.directoriesEntries.length; n++) {
+        if (widget.directoriesEntries[n].$2 == widget.selectedElement) {
+          widget.selectedList[n] = true;
+          listViewScrollController.jumpTo(n * listItemHeight);
+        }
+      }
       setState(() {});
-    } catch (e) {}
-
-    addChannelButton();
-  }
-
-  ///
-  /// Show open folder dialog
-  ///
-  void showOpenFolderDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select directory'),
-        content: OpenFolderDialog(
-            isSelectionMode: true,
-            onSelectionChange: _onSelectionChange,
-            selectedElement: newSelectedFolder,
-            fileExtensions: []),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Dismiss'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          FilledButton(
-            child: const Text('Okay'),
-            onPressed: () {
-              _updateFolderPath(newSelectedFolder!);
-              addChannelButtonStateWidget?.setState(() {});
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisAlignment: MainAxisAlignment.start,
       children: [
+        Text(widget.activeFolder),
         Expanded(
-          child: Scrollbar(
-            thickness: 10,
-            thumbVisibility: true,
-            interactive: true,
-            controller: controllerHorizontal,
-            child: SingleChildScrollView(
-                controller: controllerHorizontal,
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                    //    mainAxisAlignment: MainAxisAlignment.,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: actChannels)),
+          child: Container(
+            width: 350,
+            child: Scrollbar(
+              controller: listViewScrollController,
+              thumbVisibility: true,
+              child: ListView.builder(
+                  controller: listViewScrollController,
+                  itemCount: widget.directoriesEntries.length,
+                  shrinkWrap: true,
+                  itemBuilder: (_, int index) {
+                    return SizedBox(
+                        height: listItemHeight,
+                        child: ListTile(
+                            onTap: () => {
+                                  _toggle(index),
+                                  widget.activeFolder =
+                                      widget.directoriesEntries[index].$2,
+                                  updateList()
+                                },
+                            onLongPress: () {
+                              if (!widget.isSelectionMode) {
+                                setState(() {
+                                  widget.selectedList[index] = true;
+                                });
+                                widget.onSelectionChange!(
+                                    widget.directoriesEntries[index].$2);
+                              }
+                            },
+                            trailing: widget.isSelectionMode && index > 0
+                                ? Checkbox(
+                                    value: widget.selectedList[index],
+                                    onChanged: (bool? x) => {
+                                      for (int n = 0;
+                                          n < widget.selectedList.length;
+                                          n++)
+                                        {
+                                          widget.selectedList[n] = false,
+                                        },
+                                      _toggle(index),
+                                      if (true == x)
+                                        {
+                                          widget.onSelectionChange!(widget
+                                              .directoriesEntries[index].$2)
+                                        }
+                                    },
+                                  )
+                                : const SizedBox.shrink(),
+                            title: Text(widget.directoriesEntries[index].$1)));
+                  }),
+            ),
           ),
-        ),
-        SizedBox(
-          child: Padding(
-              padding: const EdgeInsets.fromLTRB(5, 20, 5, 5),
-              child: TextField(
-                obscureText: false,
-                controller: inputFolder,
-                onTap: showOpenFolderDialog,
-                decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.folder_open_outlined),
-                    border: OutlineInputBorder(),
-                    labelText: 'Folder where your images are stored in.',
-                    suffixText: '',
-                    hintText: '/home/user/images/'),
-              )),
-        ),
+        )
       ],
     );
-  }
-
-  @override
-  // TODO: implement wantKeepAlive
-  bool get wantKeepAlive => true;
-}
-
-///
-/// \class AddChannelButton
-/// \brief Menu at the left hand side
-///
-///
-class AddChannelButton extends Channel {
-  AddChannelButton({
-    super.key,
-    required super.scroll,
-    required super.parent,
-    required super.channelType,
-  });
-
-  final _AddChannelButton settings = new _AddChannelButton();
-
-  @override
-  State<AddChannelButton> createState() => settings;
-
-  @override
-  Object toJsonObject() {
-    return settings.toJsonObject();
-  }
-}
-
-class _AddChannelButton extends State<AddChannelButton>
-    with TickerProviderStateMixin {
-  Object toJsonObject() {
-    final channelSettings = {};
-    return channelSettings;
-  }
-
-  @override
-  void initState() {
-    addChannelButtonStateWidget = this;
-
-    super.initState();
-  }
-
-  ///
-  /// \brief Open add channel dialog
-  ///
-  void openAddChannelDialog(BuildContext context) {
-    ///
-    /// Channel labels
-    final TextEditingController channelTypesController =
-        TextEditingController();
-    final List<DropdownMenuEntry<ChannelTypeLabels>> channelTypesEntries =
-        <DropdownMenuEntry<ChannelTypeLabels>>[];
-    for (final ChannelTypeLabels entry in ChannelTypeLabels.values) {
-      channelTypesEntries.add(DropdownMenuEntry<ChannelTypeLabels>(
-          value: entry, label: entry.label));
-    }
-
-    ChannelTypeLabels? selectedChannelType = ChannelTypeLabels.nucleus;
-
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add new Channel:'),
-        content: DropdownMenu<ChannelTypeLabels>(
-          width: 230,
-          initialSelection: ChannelTypeLabels.nucleus,
-          controller: channelTypesController,
-          leadingIcon: const Icon(Icons.layers_outlined),
-          label: const Text('Channel type'),
-          dropdownMenuEntries: channelTypesEntries,
-          onSelected: (value) => selectedChannelType = value,
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Dismiss'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          FilledButton(
-            child: const Text('Okay'),
-            onPressed: () {
-              int idx = actChannels.length - 1;
-              widget.parent.setState(() {
-                switch (selectedChannelType) {
-                  case ChannelTypeLabels.ev:
-                    break;
-                  case ChannelTypeLabels.background:
-                    break;
-                  case ChannelTypeLabels.nucleus:
-                    actChannels.insert(
-                        idx,
-                        ChannelSettingExplicite(
-                          key: UniqueKey(),
-                          scroll: globalCardControllervertical,
-                          parent: widget.parent,
-                          channelType: ChannelTypeLabels.nucleus,
-                        ));
-                    break;
-                  case ChannelTypeLabels.cell:
-                    actChannels.insert(
-                        idx,
-                        ChannelSettingExplicite(
-                          key: UniqueKey(),
-                          scroll: globalCardControllervertical,
-                          parent: widget.parent,
-                          channelType: ChannelTypeLabels.cell,
-                        ));
-                    break;
-
-                  default:
-                    break;
-                }
-                addChannelButtonStateWidget?.setState(() {});
-              });
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  ///
-  /// \brief Open analysis dialog
-  ///
-  void startAnalyzeDialog(BuildContext context) {
-    showDialog<void>(
-        context: context,
-        builder: (_) {
-          return dialogAnalyze;
-        });
-  }
-
-  void _onFileSelectionChanged(String newSettingsFile) {
-    newSelectedJsonSettingsFile = newSettingsFile;
-  }
-
-  void _updateSelectedJsonSettingsFile(String path) async {
-    final newJsonFilePath = path;
-    try {
-      final settings = await getSettingsConfig(newJsonFilePath);
-      loadFromAnalyzeSettings(settings);
-    } catch (e) {}
-
-    setState(() {});
-  }
-
-  void showOpenFileDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select json file'),
-        content: OpenFolderDialog(
-          isSelectionMode: true,
-          onSelectionChange: _onFileSelectionChanged,
-          selectedElement: newSelectedJsonSettingsFile,
-          fileExtensions: [".json"],
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Dismiss'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          FilledButton(
-            child: const Text('Okay'),
-            onPressed: () {
-              _updateSelectedJsonSettingsFile(newSelectedJsonSettingsFile!);
-              addChannelButtonStateWidget?.setState(() {});
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context)
-        .textTheme
-        .apply(displayColor: Theme.of(context).colorScheme.onSurface);
-
-    return Center(
-        child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-            child: Card(
-                margin: EdgeInsets.zero,
-                elevation: 0,
-                color: Theme.of(context).colorScheme.background,
-                child: SizedBox(
-                    child: Center(
-                        child: Column(children: [
-                  //
-                  // Add channel button
-                  //
-                  Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: SizedBox(
-                        width: 60,
-                        child: FloatingActionButton(
-                          onPressed: () {
-                            openAddChannelDialog(context);
-                          },
-                          tooltip: "Add channel",
-                          child: const Icon(Icons.add),
-                        ),
-                      )),
-
-                  Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: SizedBox(
-                        width: 60,
-                        child: FloatingActionButton(
-                          onPressed: () {
-                            showOpenFileDialog();
-                          },
-                          tooltip: "Open settings",
-                          child: const Icon(Icons.folder_open_outlined),
-                        ),
-                      )),
-                  Visibility(
-                      visible: actChannels.length <= 1,
-                      child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Text(
-                              "Click the + button to add a channel\nor the folder to open existing settings.",
-                              style: textTheme.bodyLarge))),
-                  Visibility(
-                      visible: actChannels.length > 1,
-                      child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: SizedBox(
-                            width: 60,
-                            child: FloatingActionButton(
-                              onPressed: () {
-                                storeSettingsToLocalFile();
-                              },
-                              tooltip: "Save settings",
-                              child: const Icon(Icons.save_as_outlined),
-                            ),
-                          ))),
-                  //
-                  // Start analyzes button
-                  //
-                  Visibility(
-                      visible: actChannels.length > 1,
-                      child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: SizedBox(
-                            width: 60,
-                            child: FloatingActionButton(
-                              onPressed: () {
-                                startAnalyzeDialog(context);
-                              },
-                              tooltip: "Start analyze",
-                              backgroundColor: Colors.green,
-                              child: const Icon(Icons.play_arrow),
-                            ),
-                          )))
-                ]))))));
   }
 }

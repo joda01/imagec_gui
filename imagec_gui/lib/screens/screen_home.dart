@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:namer_app/logic/analyzer_settings.dart';
-import 'package:namer_app/screens/screen_analyze.dart';
+import 'package:namer_app/screens/screen_channels.dart';
 
 import '../constants.dart';
 
@@ -75,7 +75,7 @@ class ScreenHome extends StatelessWidget {
 ///
 /// Get started button pressed
 void getStartedPressed() {
-  homeState?.handleScreenChanged(ScreenSelected.analyze.value);
+  homeState?.handleScreenChanged(ScreenSelected.channels.value);
 }
 
 ///

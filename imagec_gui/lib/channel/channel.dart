@@ -1,204 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:namer_app/channel/channel_enums.dart';
 
-List<Channel> actChannels = [];
-State? addChannelButtonStateWidget;
-final ScrollSyncer globalCardControllervertical = ScrollSyncer();
-
-///
-/// Enum pipelines
-enum Pipelines {
-  count('Count', 'COUNT'),
-  coloc(
-    'Coloc',
-    'COLOC',
-  ),
-  inCellColoc('In cell coloc', 'COLOC_IN_CELL');
-
-  const Pipelines(this.label, this.value);
-  final String label;
-  final String value;
-
-  static Pipelines stringToEnum(String inString) {
-    for (final enumI in Pipelines.values) {
-      if (enumI.value == inString) {
-        return enumI;
-      }
-    }
-    return Pipelines.count;
-  }
-}
+import '../helper/scroll_syncer.dart';
+import '../preprocessing/preprocessing.dart';
+import '../preprocessing/preprocessing_z_stack.dart';
+import '../screens/screen_channels.dart';
 
 ///
-/// Export gadgets
-enum PostProcessingScript {
-  liner_regression(
-      'Linear regression (R)', 'POST_PROCESSING_SCRIPT_LINER_REGRESSION'),
-  histogram('Histogram (Python)', 'POST_PROCESSING_SCRIPT_HISTOGRAM'),
-  graphical_view(
-    'Graphical comparison (Python)',
-    'POST_PROCESSING_SCRIPT_GRAPHICAL_COMPARISON',
-  );
-
-  const PostProcessingScript(this.label, this.value);
-  final String label;
-  final String value;
-}
-
-enum ChannelLabels {
-  none('none', 'NONE'),
-  cy3('CY3', 'CY3'),
-  cy5('CY5', 'CY5'),
-  cy7('CY7', 'CY7'),
-  dapi('DAPI', 'DAPI'),
-  gfp(
-    'GFP',
-    'GFP',
-  );
-
-  const ChannelLabels(this.label, this.value);
-  final String label;
-  final String value;
-
-  static stringToEnum(String str) {
-    for (final label in ChannelLabels.values) {
-      if (label.value == str) {
-        return label;
-      }
-    }
-    return ChannelLabels.none;
-  }
-}
-
-enum AIModel {
-  common('Common v1', 'AI_MODEL_COMMON_V1');
-
-  const AIModel(this.label, this.value);
-  final String label;
-  final String value;
-
-  static stringToEnum(String str) {
-    for (final label in AIModel.values) {
-      if (label.value == str) {
-        return label;
-      }
-    }
-    return AIModel.common;
-  }
-}
-
+/// Abstract channel class
 ///
-/// Enum values
-enum ChannelTypeLabels {
-  nucleus(
-    'Nucleus (alpha)',
-    'NUCLEUS',
-  ),
-  cell('Cell (alpha)', 'CELL'),
-  ev('EV (NA)', 'EV'),
-  background('Background (NA)', 'BACKGROUND'),
-  tetraspeck_bead('Tetraspeck Bead (NA)', 'TETRASPECK_BEAD');
-
-  const ChannelTypeLabels(this.label, this.value);
-  final String label;
-  final String value;
-
-  static ChannelTypeLabels stringToEnum(String inString) {
-    for (final enumI in ChannelTypeLabels.values) {
-      if (enumI.value == inString) {
-        return enumI;
-      }
-    }
-    return ChannelTypeLabels.nucleus;
-  }
-}
-
-enum ThresholdMethod {
-  manual('Manual', 'MANUAL'),
-  li(
-    'Li',
-    'LI',
-  ),
-  triangle(
-    'Min error',
-    'MIN_ERROR',
-  ),
-  min_error('Triangle', 'TRIANGLE');
-
-  const ThresholdMethod(this.label, this.value);
-  final String label;
-  final String value;
-
-  static ThresholdMethod stringToEnum(String inString) {
-    for (final enumI in ThresholdMethod.values) {
-      if (enumI.value == inString) {
-        return enumI;
-      }
-    }
-    return ThresholdMethod.manual;
-  }
-}
-
-enum ChannelIndex {
-  ch01('01', 0),
-  ch02('02', 1),
-  ch03('03', 2),
-  ch04('04', 3),
-  ch05('05', 4),
-  ch06('06', 5),
-  ch07('07', 6),
-  ch08('08', 7),
-  ch09('09', 8),
-  ch10('10', 9),
-  ch11('11', 10),
-  ch12('12', 11);
-  //ch13('13', 12),
-  //ch14('14', 13),
-  //ch15('15', 14),
-  //ch16('16', 15),
-  // ch17('17', 16),
-  //  ch18('18', 17);
-
-  const ChannelIndex(this.label, this.value);
-  final String label;
-  final int value;
-
-  static ChannelIndex toIndex(int i) {
-    for (final channel in ChannelIndex.values) {
-      if (channel.value == i) {
-        return channel;
-      }
-    }
-    return ChannelIndex.ch01;
-  }
-}
-
-class ScrollSyncer {
-  StreamController<ScrollController> _streamController =
-      StreamController<ScrollController>.broadcast();
-
-  void setPosition(ScrollController position) {
-    if (pos != position.offset) {
-      pos = position.offset;
-      _streamController.add(position);
-    }
-  }
-
-  Stream<ScrollController> get onChange => _streamController.stream;
-  double pos = 0;
-
-  void dispose() {
-    _streamController.close();
-  }
-}
-
 abstract class Channel extends StatefulWidget {
   Channel(
       {super.key,
       required this.scroll,
       required this.parent,
-      required this.channelType});
+      required this.channelType}) {}
 
   final ScrollSyncer scroll;
   final State parent;
@@ -209,6 +27,7 @@ abstract class Channel extends StatefulWidget {
   ChannelLabels selectedChannelLabel = ChannelLabels.cy3;
   AIModel selectedAIModel = AIModel.common;
   bool useAI = false;
+  TextEditingController selectedChannelName = TextEditingController();
   ThresholdMethod selectedThresholdMethod = ThresholdMethod.manual;
   TextEditingController selectedMinThreshold = TextEditingController();
   TextEditingController selectedMinProbability = TextEditingController()
@@ -221,12 +40,20 @@ abstract class Channel extends StatefulWidget {
   TextEditingController selectedParticleSizeRange = TextEditingController()
     ..text = "5-999999";
 
+  List<PreprocessingWidget> preprocessingSteps = [];
+
+  final PreprocessingZStack preprocessingZStack = PreprocessingZStack();
+
   Object toJsonObject();
 
   (double, double) getMinMaxParticleSize() {
     final min = double.parse(selectedParticleSizeRange.text.split("-")[0]);
     final max = double.parse(selectedParticleSizeRange.text.split("-")[1]);
     return (min, max);
+  }
+
+  String getNameAndIndex() {
+    return "${selectedChannelName.text} (${chSelector.getSelectedChannelName()})";
   }
 
   @protected
@@ -257,26 +84,39 @@ abstract class Channel extends StatefulWidget {
       margin_crop = double.parse(selectedMarginCrop.text);
     } catch (ex) {}
 
+    List<Object> preprocessingStepObjects = [];
+    preprocessingStepObjects.add(preprocessingZStack.toJsonObject());
+    for (final preprocessingStep in preprocessingSteps) {
+      preprocessingStepObjects.add(preprocessingStep.toJsonObject());
+    }
+
     final channelSettings = {
-      "index": chSelector.getSelectedChannel(),
-      "type": channelType.value,
-      "label": selectedChannelLabel.value,
-      "detection_mode": true == useAI ? "AI" : "THRESHOLD",
-      "thresholds": {
-        "threshold_algorithm": selectedThresholdMethod.value,
-        "threshold_min": thresholdMin,
-        "threshold_max": 1,
+      "info":{
+        "index": chSelector.getSelectedChannel(),
+        "type": channelType.value,
+        "label": selectedChannelLabel.value,
+        "name": selectedChannelName.text,
       },
-      "ai_settings": {
-        "model_name": selectedAIModel.value,
-        "probability_min": probability_min
+      "preprocessing": preprocessingStepObjects,
+      "detection": {
+        "mode": true == useAI ? "AI" : "THRESHOLD",
+        "threshold": {
+          "threshold_algorithm": selectedThresholdMethod.value,
+          "threshold_min": thresholdMin,
+          "threshold_max": 1,
+        },
+        "ai": {
+          "model_name": selectedAIModel.value,
+          "probability_min": probability_min
+        },
       },
-      "min_particle_size": minParticle,
-      "max_particle_size": maxParticle,
-      "min_circularity": min_circularity,
-      "snap_area_size": snap_area_size,
-      "margin_crop": margin_crop,
-      "zprojection": "MAX",
+      "filter": {
+        "min_particle_size": minParticle,
+        "max_particle_size": maxParticle,
+        "min_circularity": min_circularity,
+        "snap_area_size": snap_area_size,
+        "margin_crop": margin_crop,
+      }
     };
     return channelSettings;
   }
@@ -345,21 +185,26 @@ class RangeTextInputFormatter extends TextInputFormatter {
 }
 
 class CustomDivider extends StatelessWidget {
-  CustomDivider({this.padding = 10});
-  final double padding;
+  CustomDivider(
+      {required this.text, this.paddingTop = 10, this.paddingBottom = 10});
+  final String text;
+  final double paddingTop;
+  final double paddingBottom;
+
   @override
   Widget build(BuildContext context) => Padding(
-      padding: EdgeInsets.all(padding),
+      padding: EdgeInsets.fromLTRB(10, paddingTop, 10, paddingBottom),
       child: SizedBox(
-        height: 10.0,
+        height: 15.0,
         width: 230,
-        child: Center(
-          child: Container(
+        child: Wrap(children: [
+          Text(text, style: TextStyle(fontStyle: FontStyle.italic)),
+          Container(
             margin: EdgeInsetsDirectional.only(start: 1.0, end: 1.0),
             height: 1.0,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: Theme.of(context).colorScheme.onBackground,
           ),
-        ),
+        ]),
       ));
 }
 
@@ -369,7 +214,7 @@ class RemoveChannelWidget extends StatelessWidget {
   final Channel widget;
   @override
   Widget build(BuildContext context) => Padding(
-      padding: const EdgeInsets.all(20),
+      padding:const EdgeInsets.fromLTRB(20, 5, 20, 10),
       child: FilledButton(
         // co:Theme.of(context).colorScheme.onError,
 
@@ -423,6 +268,14 @@ class ChannelSelector extends StatefulWidget {
     }
   }
 
+  String getSelectedChannelName() {
+    if (filters.length > 0) {
+      return filters.first.label;
+    } else {
+      return "";
+    }
+  }
+
   void setSelectedChannel(ChannelIndex ch) {
     filters.clear();
     filters.add(ch);
@@ -463,6 +316,71 @@ class _ChannelSelectorState extends State<ChannelSelector> {
             }).toList(),
           ),
         ],
+      ),
+    );
+  }
+}
+
+///
+/// Function selector
+class PreprocessingstepSelector extends StatefulWidget {
+  PreprocessingstepSelector({super.key});
+
+  @override
+  State<PreprocessingstepSelector> createState() =>
+      _PreprocessingstepSelector();
+
+  Set<PreprocessingSteps> filters = <PreprocessingSteps>{};
+
+  Set<PreprocessingSteps> getSelectedChannel() {
+    return filters;
+  }
+
+  void setSelectedChannel(PreprocessingSteps ch) {
+    filters.clear();
+    filters.add(ch);
+  }
+}
+
+class _PreprocessingstepSelector extends State<PreprocessingstepSelector> {
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final ScrollController controllervertical = ScrollController();
+
+    return Scrollbar(
+      thickness: 10,
+      //thumbVisibility: true,
+      interactive: true,
+      controller: controllervertical,
+      child: SingleChildScrollView(
+        controller: controllervertical,
+        child: Wrap(
+          spacing: 5.0,
+          runSpacing: 5.0,
+          children:
+              PreprocessingSteps.values.map((PreprocessingSteps exercise) {
+            return Container(
+              child: FilterChip(
+                label:
+                    Wrap(children: [exercise.icon, Text(" " + exercise.label)]),
+                selected: widget.filters.contains(exercise),
+                //selectedColor: Theme.of(context).colorScheme.onSurface,
+                showCheckmark: false,
+                onSelected: (bool selected) {
+                  setState(() {
+                    //widget.filters.clear(); // Allow only one selection
+                    if (selected) {
+                      widget.filters.add(exercise);
+                    } else {
+                      widget.filters.remove(exercise);
+                    }
+                  });
+                },
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
