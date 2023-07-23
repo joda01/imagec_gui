@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:namer_app/channel/channel.dart';
@@ -71,9 +70,11 @@ class ChannelSettingExplicite extends Channel {
           title: actImage.isNotEmpty ? const Text('Preview') : const Text(''),
           content: actImage.isNotEmpty
               ? InteractiveViewer(
+                  maxScale: 10,
                   child: Image(
-                  image: actImage[0].image,
-                ))
+                    image: actImage[0].image,
+                  ),
+                )
               : const Image(image: AssetImage('assets/wait.gif')),
           actions: <Widget>[
             TextButton(
@@ -146,7 +147,7 @@ class ChannelSettingExplicite extends Channel {
           detectionDynamic["threshold"]["threshold_algorithm"]);
 
       int minThreshodl =
-          ((detectionDynamic["threshold"]["threshold_min"] as int) );
+          ((detectionDynamic["threshold"]["threshold_min"] as int));
       if (minThreshodl >= 0) {
         super.selectedMinThreshold.text = minThreshodl.toString();
       }
@@ -550,7 +551,8 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                                     inputFormatters: [
                                       FilteringTextInputFormatter.allow(
                                           RegExp(r'^\d+\.?\d{0}')),
-                                      RangeTextInputFormatter(min: 0, max: 65535)
+                                      RangeTextInputFormatter(
+                                          min: 0, max: 65535)
                                     ],
                                     keyboardType:
                                         TextInputType.numberWithOptions(
