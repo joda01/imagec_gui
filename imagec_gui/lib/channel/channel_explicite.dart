@@ -145,8 +145,8 @@ class ChannelSettingExplicite extends Channel {
       super.selectedThresholdMethod = ThresholdMethod.stringToEnum(
           detectionDynamic["threshold"]["threshold_algorithm"]);
 
-      double minThreshodl =
-          ((detectionDynamic["threshold"]["threshold_min"] as double) * 100);
+      int minThreshodl =
+          ((detectionDynamic["threshold"]["threshold_min"] as int) );
       if (minThreshodl >= 0) {
         super.selectedMinThreshold.text = minThreshodl.toString();
       }
@@ -549,8 +549,8 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                                     controller: widget.selectedMinThreshold,
                                     inputFormatters: [
                                       FilteringTextInputFormatter.allow(
-                                          RegExp(r'^\d+\.?\d{0,2}')),
-                                      RangeTextInputFormatter(min: 0, max: 100)
+                                          RegExp(r'^\d+\.?\d{0}')),
+                                      RangeTextInputFormatter(min: 0, max: 65535)
                                     ],
                                     keyboardType:
                                         TextInputType.numberWithOptions(
@@ -559,10 +559,10 @@ class _ChannelSettingExplicite extends State<ChannelSettingExplicite> {
                                         prefixIcon: const Icon(Icons.exposure),
                                         border: OutlineInputBorder(),
                                         labelText: 'Min threshold',
-                                        suffixText: '%',
-                                        hintText: '[0-100]',
+                                        suffixText: '',
+                                        hintText: '[0-65535]',
                                         helperText:
-                                            'Value of 100% means perfect white.'),
+                                            'Value of 65535 means perfect white.'),
                                   ),
                                 ))),
 

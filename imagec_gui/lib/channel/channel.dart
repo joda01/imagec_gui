@@ -59,9 +59,9 @@ abstract class Channel extends StatefulWidget {
   @protected
   Object jsonObjectBuilder() {
     final (minParticle, maxParticle) = getMinMaxParticleSize();
-    double thresholdMin = -1;
+    int thresholdMin = -1;
     try {
-      thresholdMin = double.parse(selectedMinThreshold.text) / 100;
+      thresholdMin = int.parse(selectedMinThreshold.text);
     } catch (e) {}
 
     double probability_min = -1;
