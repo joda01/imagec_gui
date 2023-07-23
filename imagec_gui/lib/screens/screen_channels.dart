@@ -115,7 +115,7 @@ class _ChannelRow extends State<ChannelRow>
       var channelType = ChannelTypeLabels.nucleus;
       switch (channel["info"]["type"] as String) {
         case "SPOT":
-          channelType = ChannelTypeLabels.ev;
+          channelType = ChannelTypeLabels.spot;
           break;
         case "BACKGROUND":
           channelType = ChannelTypeLabels.background;
@@ -307,7 +307,15 @@ class _AddChannelButton extends State<AddChannelButton>
               int idx = actChannels.length - 1;
               widget.parent.setState(() {
                 switch (selectedChannelType) {
-                  case ChannelTypeLabels.ev:
+                  case ChannelTypeLabels.spot:
+                    actChannels.insert(
+                        idx,
+                        ChannelSettingExplicite(
+                          key: UniqueKey(),
+                          scroll: globalCardControllervertical,
+                          parent: widget.parent,
+                          channelType: ChannelTypeLabels.spot,
+                        ));
                     break;
                   case ChannelTypeLabels.background:
                     break;

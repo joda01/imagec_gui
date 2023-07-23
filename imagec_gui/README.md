@@ -4,7 +4,7 @@ A new Flutter project.
 
 `flutter build web`  
 
-`flutter build web --web-renderer html`
+`flutter build web --web-renderer html --no-tree-shake-icons`
 
 ## Getting Started
 

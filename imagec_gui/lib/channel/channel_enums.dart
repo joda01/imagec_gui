@@ -154,11 +154,11 @@ enum AIModel {
 ///
 enum ChannelTypeLabels {
   nucleus(
-    'Nucleus (alpha)',
+    'Nucleus',
     'NUCLEUS',
   ),
-  cell('Cell (alpha)', 'CELL'),
-  ev('Spot (NA)', 'SPOT'),
+  cell('Cell', 'CELL'),
+  spot('Spot', 'SPOT'),
   background('Background (NA)', 'BACKGROUND'),
   tetraspeck_bead('Tetraspeck Bead (NA)', 'TETRASPECK_BEAD');
 
